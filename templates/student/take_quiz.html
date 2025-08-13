@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ paper.name }} - 在线答题 - AI课程助手系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <!-- 顶部导航栏 -->
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <h1 class="text-xl font-bold text-blue-600">📝 {{ paper.name }}</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="/student/quiz" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition duration-200">
+                        返回试卷列表
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主要内容 -->
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-4xl mx-auto">
+            <!-- 页面标题和试卷信息 -->
+            <div class="text-center mb-8 bg-white p-6 rounded-xl shadow-lg">
+                <h2 class="text-3xl font-bold text-gray-800 mb-2">{{ paper.name }}</h2>
+                <p class="text-gray-600">共 {{ quizzes|length }} 道题目</p>
+                {% if paper.status != 'published' %}
+                <span class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded-full mt-2 inline-block">
+                    ⚠️ 试卷未发布，仅供预览
+                </span>
+                {% endif %}
+            </div>
+
+            <!-- 消息提示 -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="mb-6">
+                        {% for category, message in messages %}
+                            <div class="p-4 rounded-lg {% if category == 'success' %}bg-green-100 text-green-700 border border-green-200{% elif category == 'error' %}bg-red-100 text-red-700 border border-red-200{% else %}bg-blue-100 text-blue-700 border border-blue-200{% endif %}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            <!-- 题目列表 -->
+            {% if quizzes %}
+            <form method="POST" action="/student/submit_quiz/{{ paper.id }}" class="space-y-8">
+                {% for item in quizzes %}
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <div class="flex items-start mb-4">
+                        <span class="inline-flex items-center justify-center w-8 h-8 bg-blue-100 text-blue-600 rounded-full text-sm font-medium mr-3">
+                            {{ item.paper_quiz.question_order }}
+                        </span>
+                        <h4 class="text-lg font-medium text-gray-800">题目内容：</h4>
+                    </div>
+                    
+                    <!-- 题目内容 -->
+                    <div class="mb-4 p-4 bg-gray-50 rounded-lg">
+                        <p class="text-gray-700">{{ item.quiz.content }}</p>
+                    </div>
+                    
+                    <!-- 答题区域 (暂时是文本输入框) -->
+                    <div>
+                        <label for="answer_{{ item.quiz.id }}" class="block text-sm font-medium text-gray-700 mb-2">你的答案：</label>
+                        <textarea 
+                            id="answer_{{ item.quiz.id }}" 
+                            name="answer_{{ item.quiz.id }}" 
+                            rows="3"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            placeholder="请输入你的答案"
+                        ></textarea>
+                    </div>
+                </div>
+                {% endfor %}
+                
+                <!-- 提交按钮 -->
+                <div class="flex justify-center mt-8">
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-medium transition duration-200">
+                        提交试卷
+                    </button>
+                </div>
+            </form>
+            {% else %}
+            <!-- 试卷无题目时的提示 -->
+            <div class="text-center py-16 bg-white rounded-xl shadow-lg">
+                <div class="w-32 h-32 mx-auto mb-8 bg-gray-100 rounded-full flex items-center justify-center">
+                    <span class="text-5xl text-gray-400">📝</span>
+                </div>
+                <h2 class="text-2xl font-semibold text-gray-600 mb-4">这份试卷还没有题目</h2>
+                <p class="text-gray-500 mb-8">请联系老师添加题目后再进行答题</p>
+                <a href="/student/quiz" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-medium transition duration-200">
+                    返回试卷列表
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html> 
