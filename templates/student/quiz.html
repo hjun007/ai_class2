@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>在线答题 - AI课程助手系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <!-- 顶部导航栏 -->
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <h1 class="text-xl font-bold text-blue-600">📝 在线答题</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="/student/dashboard" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition duration-200">
+                        返回仪表板
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主要内容 -->
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-6xl mx-auto">
+            <!-- 页面标题 -->
+            <div class="text-center mb-12">
+                <h1 class="text-4xl font-bold text-gray-800 mb-4">在线答题系统</h1>
+                <p class="text-xl text-gray-600">选择下方试卷开始答题</p>
+            </div>
+
+            <!-- 试卷列表 -->
+            {% if papers %}
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for paper_info in papers %}
+                <div class="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                    <div class="p-6">
+                        <!-- 试卷标题 -->
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-xl font-semibold text-gray-800">{{ paper_info.paper.name }}</h3>
+                            <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+                                已发布
+                            </span>
+                        </div>
+                        
+                        <!-- 试卷信息 -->
+                        <div class="space-y-3 mb-6">
+                            <div class="flex items-center text-gray-600">
+                                <span class="text-blue-500 mr-2">📊</span>
+                                <span>题目数量: {{ paper_info.quiz_count }} 道</span>
+                            </div>
+                            <div class="flex items-center text-gray-600">
+                                <span class="text-green-500 mr-2">🎯</span>
+                                <span>总分: {{ paper_info.total_score }} 分</span>
+                            </div>
+                            <div class="flex items-center text-gray-600">
+                                <span class="text-purple-500 mr-2">📅</span>
+                                <span>创建时间: {{ paper_info.paper.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                            </div>
+                        </div>
+                        
+                        <!-- 操作按钮 -->
+                        <div class="flex space-x-3">
+                            {% if paper_info.quiz_count > 0 %}
+                            <button class="flex-1 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium transition duration-200">
+                                开始答题
+                            </button>
+                            <button class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-medium transition duration-200">
+                                预览
+                            </button>
+                            {% else %}
+                            <button class="flex-1 bg-gray-300 text-gray-500 px-4 py-2 rounded-lg font-medium cursor-not-allowed" disabled>
+                                暂无题目
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <!-- 无试卷时的提示 -->
+            <div class="text-center py-16">
+                <div class="w-32 h-32 mx-auto mb-8 bg-gray-100 rounded-full flex items-center justify-center">
+                    <span class="text-5xl text-gray-400">📝</span>
+                </div>
+                <h2 class="text-2xl font-semibold text-gray-600 mb-4">暂无可用试卷</h2>
+                <p class="text-gray-500 mb-8">老师还没有发布任何试卷，请稍后再来查看</p>
+                <a href="/student/dashboard" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-medium transition duration-200">
+                    返回仪表板
+                </a>
+            </div>
+            {% endif %}
+
+            <!-- 答题说明 -->
+            {% if papers %}
+            <div class="mt-12 bg-white rounded-xl shadow-lg p-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">📋 答题说明</h3>
+                <div class="grid md:grid-cols-2 gap-6 text-gray-600">
+                    <div>
+                        <h4 class="font-medium text-gray-800 mb-2">答题规则</h4>
+                        <ul class="space-y-2 text-sm">
+                            <li class="flex items-start">
+                                <span class="text-blue-500 mr-2">•</span>
+                                每道题目都有相应的分值，请认真作答
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-blue-500 mr-2">•</span>
+                                答题过程中请勿刷新页面，以免丢失答案
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-blue-500 mr-2">•</span>
+                                提交后将显示正确答案和详细解析
+                            </li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="font-medium text-gray-800 mb-2">注意事项</h4>
+                        <ul class="space-y-2 text-sm">
+                            <li class="flex items-start">
+                                <span class="text-orange-500 mr-2">•</span>
+                                请确保网络连接稳定
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-orange-500 mr-2">•</span>
+                                答题时间有限，请合理安排时间
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-orange-500 mr-2">•</span>
+                                如有问题请联系老师或管理员
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html> 

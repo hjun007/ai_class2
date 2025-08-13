@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能出题 - AI课程助手系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-orange-50 to-orange-100 min-h-screen">
+    <!-- 顶部导航栏 -->
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <h1 class="text-xl font-bold text-orange-600">🧠 智能出题</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="/teacher/dashboard" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg transition duration-200">
+                        返回仪表板
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主要内容 -->
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-6xl mx-auto">
+            <!-- 页面标题 -->
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold text-gray-800 mb-4">智能出题系统</h2>
+                <p class="text-gray-600">根据您的需求，AI将自动生成题目</p>
+            </div>
+
+            <!-- 消息提示 -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="mb-6">
+                        {% for category, message in messages %}
+                            <div class="p-4 rounded-lg {% if category == 'success' %}bg-green-100 text-green-700 border border-green-200{% elif category == 'error' %}bg-red-100 text-red-700 border border-red-200{% else %}bg-blue-100 text-blue-700 border border-blue-200{% endif %}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            <!-- 左右布局容器 -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- 左侧：出题表单 -->
+                <div>
+                    <div class="bg-white rounded-xl shadow-lg p-8">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-6">出题设置</h3>
+                        <form method="POST" action="/teacher/smart-quiz">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                <!-- 科目 -->
+                                <div>
+                                    <label for="subject" class="block text-sm font-medium text-gray-700 mb-2">科目 <span class="text-red-500">*</span></label>
+                                    <select id="subject" name="subject" required
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent">
+                                        <option value="">请选择科目</option>
+                                        <option value="信息">信息</option>
+                                        <option value="数学">数学</option>
+                                        <option value="语文">语文</option>
+                                        <option value="英语">英语</option>
+                                    </select>
+                                </div>
+                                <!-- 年级 -->
+                                <div>
+                                    <label for="grade" class="block text-sm font-medium text-gray-700 mb-2">年级 <span class="text-red-500">*</span></label>
+                                    <select id="grade" name="grade" required
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent">
+                                        <option value="">请选择年级</option>
+                                        <option value="初中一年级">初中一年级</option>
+                                        <option value="初中二年级">初中二年级</option>
+                                        <option value="初中三年级">初中三年级</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                <!-- 题目类型 -->
+                                <div>
+                                    <label for="question_type" class="block text-sm font-medium text-gray-700 mb-2">题目类型 <span class="text-red-500">*</span></label>
+                                    <select id="question_type" name="question_type" required
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent">
+                                        <option value="选择题">选择题</option>
+                                        <option value="填空题">填空题</option>
+                                        <option value="简答题">简答题</option>
+                                        <option value="计算题">计算题</option>
+                                        <option value="判断题">判断题</option>
+                                    </select>
+                                </div>
+                                <!-- 题目数量 -->
+                                <div>
+                                    <label for="num_questions" class="block text-sm font-medium text-gray-700 mb-2">题目数量 <span class="text-red-500">*</span></label>
+                                    <input type="number" id="num_questions" name="num_questions" required min="1" max="10"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                        value="1">
+                                    <p class="mt-1 text-sm text-gray-500">每次最多生成10道题目</p>
+                                </div>
+                            </div>
+
+                            <!-- 考察知识点 -->
+                            <div class="mb-6">
+                                <label for="knowledge_points" class="block text-sm font-medium text-gray-700 mb-2">考察知识点 <span class="text-red-500">*</span></label>
+                                <textarea id="knowledge_points" name="knowledge_points" rows="4" required
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                    placeholder="例如：代数式，氧化还原反应，细胞结构，动词的时态和语态">
+                                </textarea>
+                                <p class="mt-1 text-sm text-gray-500">请提供详细的知识点，这将有助于AI生成更精准的题目</p>
+                            </div>
+
+                            <!-- 提交按钮 -->
+                            <div class="flex justify-end">
+                                <button type="submit" class="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg font-medium transition duration-200">
+                                    生成题目
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- 右侧：生成结果显示区域 -->
+                <div>
+                    {% if generated_quizzes %}
+                    <div class="bg-white rounded-xl shadow-lg p-8">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-6">已生成的题目</h3>
+                        <div class="space-y-8">
+                            {% for quiz in generated_quizzes %}
+                            <div class="border border-gray-200 rounded-lg p-6 bg-gray-50">
+                                <div class="mb-4">
+                                    <p class="text-sm text-gray-500 mb-1">题目 {{ loop.index }} (ID: {{ quiz.id }})</p>
+                                    <h4 class="text-lg font-medium text-gray-800 mb-2">题目内容:</h4>
+                                    <p class="text-gray-700">{{ quiz.content }}</p>
+                                </div>
+                                <div class="mb-4">
+                                    <h4 class="text-lg font-medium text-gray-800 mb-2">正确答案:</h4>
+                                    <p class="text-green-700">{{ quiz.answer }}</p>
+                                </div>
+                                {% if quiz.analysis %}
+                                <div>
+                                    <h4 class="text-lg font-medium text-gray-800 mb-2">题目分析:</h4>
+                                    <p class="text-blue-700">{{ quiz.analysis }}</p>
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <div class="mt-8 text-center">
+                            <a href="/teacher/paper-management" class="bg-indigo-500 hover:bg-indigo-600 text-white px-6 py-3 rounded-lg font-medium transition duration-200">
+                                前往试卷管理添加题目
+                            </a>
+                        </div>
+                    </div>
+                    {% else %}
+                    <!-- 初始状态或无结果时的提示 -->
+                    <div class="bg-white rounded-xl shadow-lg p-8 text-center min-h-[400px] flex flex-col justify-center items-center">
+                        <div class="w-24 h-24 mx-auto mb-6 bg-orange-100 rounded-full flex items-center justify-center">
+                            <span class="text-4xl text-orange-500">✨</span>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-700 mb-3">开始智能出题</h3>
+                        <p class="text-gray-500 max-w-sm">在左侧填写出题要求，点击“生成题目”按钮，AI将在这里为您展示生成的题目。</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html> 

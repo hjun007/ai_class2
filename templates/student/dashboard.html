@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>学生仪表板 - AI课程助手系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-green-50 to-emerald-100 min-h-screen">
+    <!-- 顶部导航栏 -->
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <h1 class="text-xl font-bold text-green-600">👨‍🎓 学生仪表板</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="text-gray-600">欢迎，学生</span>
+                    <a href="/" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition duration-200">
+                        退出登录
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主要内容区域 -->
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-6xl mx-auto">
+            <!-- 欢迎信息 -->
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-gray-800 mb-4">欢迎使用学生功能</h2>
+                <p class="text-lg text-gray-600">选择下方功能模块开始您的学习之旅</p>
+            </div>
+
+            <!-- 功能模块网格 -->
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+                <!-- 在线答题模块 -->
+                <a href="/student/quiz" class="group">
+                    <div class="bg-white rounded-2xl shadow-lg p-6 text-center hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 border-2 border-transparent hover:border-green-300">
+                        <div class="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                            <span class="text-3xl text-white">📝</span>
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-800 mb-2">在线答题</h3>
+                        <p class="text-sm text-gray-600">参与在线测试，检验学习成果</p>
+                    </div>
+                </a>
+
+                <!-- AI智能体模块 -->
+                <a href="/student/ai-assistant" class="group">
+                    <div class="bg-white rounded-2xl shadow-lg p-6 text-center hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 border-2 border-transparent hover:border-green-300">
+                        <div class="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                            <span class="text-3xl text-white">🤖</span>
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-800 mb-2">AI智能体</h3>
+                        <p class="text-sm text-gray-600">智能学习助手，解答疑问</p>
+                    </div>
+                </a>
+
+            <!-- 底部信息 -->
+            <div class="text-center mt-16">
+                <p class="text-gray-500 text-sm">更多功能模块正在开发中...</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html> 

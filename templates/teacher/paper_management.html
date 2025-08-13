@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>试卷管理 - AI课程助手系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-indigo-50 to-purple-100 min-h-screen">
+    <!-- 顶部导航栏 -->
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <h1 class="text-xl font-bold text-indigo-600">📋 试卷管理</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="/teacher/dashboard" class="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg transition duration-200">
+                        返回仪表板
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主要内容 -->
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-6xl mx-auto">
+            <!-- 页面标题和操作按钮 -->
+            <div class="flex justify-between items-center mb-8">
+                <div>
+                    <h2 class="text-3xl font-bold text-gray-800">试卷管理</h2>
+                    <p class="text-gray-600 mt-2">管理您的试卷，包括创建、编辑、发布和删除</p>
+                </div>
+                <a href="/teacher/paper/create" class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg font-medium transition duration-200">
+                    ➕ 新增试卷
+                </a>
+            </div>
+
+            <!-- 消息提示 -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="mb-6">
+                        {% for category, message in messages %}
+                            <div class="p-4 rounded-lg {% if category == 'success' %}bg-green-100 text-green-700 border border-green-200{% else %}bg-red-100 text-red-700 border border-red-200{% endif %}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            <!-- 试卷列表 -->
+            {% if papers %}
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    试卷信息
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    状态
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    创建时间
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    操作
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for paper in papers %}
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div>
+                                        <div class="text-sm font-medium text-gray-900">{{ paper.name }}</div>
+                                        <div class="text-sm text-gray-500">ID: {{ paper.id }}</div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    {% if paper.status == 'published' %}
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                            已发布
+                                        </span>
+                                    {% elif paper.status == 'draft' %}
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                            草稿
+                                        </span>
+                                    {% elif paper.status == 'archived' %}
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                            已归档
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {{ paper.created_at.strftime('%Y-%m-%d %H:%M') }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                    <div class="flex space-x-2">
+                                        <a href="/teacher/paper/{{ paper.id }}/view" class="text-blue-600 hover:text-blue-900">
+                                            查看
+                                        </a>
+                                        <a href="/teacher/paper/{{ paper.id }}/edit" class="text-indigo-600 hover:text-indigo-900">
+                                            编辑
+                                        </a>
+                                        {% if paper.status == 'draft' %}
+                                            <form method="POST" action="/teacher/paper/{{ paper.id }}/publish" class="inline">
+                                                <button type="submit" class="text-green-600 hover:text-green-900">
+                                                    发布
+                                                </button>
+                                            </form>
+                                        {% elif paper.status == 'published' %}
+                                            <form method="POST" action="/teacher/paper/{{ paper.id }}/unpublish" class="inline">
+                                                <button type="submit" class="text-yellow-600 hover:text-yellow-900">
+                                                    取消发布
+                                                </button>
+                                            </form>
+                                        {% endif %}
+                                        <form method="POST" action="/teacher/paper/{{ paper.id }}/delete" class="inline" onsubmit="return confirm('确定要删除这份试卷吗？此操作不可恢复。')">
+                                            <button type="submit" class="text-red-600 hover:text-red-900">
+                                                删除
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% else %}
+            <!-- 空状态 -->
+            <div class="text-center py-16">
+                <div class="w-32 h-32 mx-auto mb-8 bg-gray-100 rounded-full flex items-center justify-center">
+                    <span class="text-5xl text-gray-400">📋</span>
+                </div>
+                <h2 class="text-2xl font-semibold text-gray-600 mb-4">暂无试卷</h2>
+                <p class="text-gray-500 mb-8">您还没有创建任何试卷，点击上方按钮开始创建</p>
+                <a href="/teacher/paper/create" class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg font-medium transition duration-200">
+                    创建第一份试卷
+                </a>
+            </div>
+            {% endif %}
+
+            <!-- 统计信息 -->
+            {% if papers %}
+            <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center">
+                        <div class="p-2 bg-blue-100 rounded-lg">
+                            <span class="text-2xl text-blue-600">📋</span>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-500">总试卷数</p>
+                            <p class="text-2xl font-semibold text-gray-900">{{ papers|length }}</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center">
+                        <div class="p-2 bg-green-100 rounded-lg">
+                            <span class="text-2xl text-green-600">✅</span>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-500">已发布</p>
+                            <p class="text-2xl font-semibold text-gray-900">{{ papers|selectattr('status', 'equalto', 'published')|list|length }}</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center">
+                        <div class="p-2 bg-yellow-100 rounded-lg">
+                            <span class="text-2xl text-yellow-600">📝</span>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-500">草稿</p>
+                            <p class="text-2xl font-semibold text-gray-900">{{ papers|selectattr('status', 'equalto', 'draft')|list|length }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html> 
