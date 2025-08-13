@@ -23,10 +23,9 @@ ai_class2/
 
 ### 0. 创建虚拟环境
 
-、、、bash
+```bash
 python -m venv venv
-、、、
-
+```
 ### 1. 安装依赖
 
 ```bash
