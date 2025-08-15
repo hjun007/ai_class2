@@ -5,21 +5,48 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI课程助手系统</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* 彩虹文字 */
+        .rainbow-text {
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #feca57, #ff6b6b);
+            background-size: 400% 400%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradientShift 3s ease infinite;
+        }
+        
+        /* 渐变动画 */
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        /* 背景图片样式 - 完整显示 */
+        .bg-image {
+            background-image: url('/static/img/bg.jpeg');
+            background-size: contain;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-color: #f3f4f6;
+        }
+    </style>
 </head>
-<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+<body class="bg-gray-100 min-h-screen">
     <!-- 导航栏 -->
     <nav class="bg-white shadow-lg">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="w-full px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-16">
                 <!-- Logo -->
-                <div class="flex items-center">
+                <div class="flex items-center ml-48">
                     <div class="flex-shrink-0">
                         <h1 class="text-2xl font-bold text-indigo-600">🤖 AI课程助手</h1>
                     </div>
                 </div>
                 
                 <!-- 登录按钮 -->
-                <div class="flex space-x-4">
+                <div class="flex space-x-4 mr-48">
                     <a href="/student/login" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition duration-200">
                         学生登录
                     </a>
@@ -31,124 +58,8 @@
         </div>
     </nav>
 
-    <!-- 主要内容 -->
-    <div class="container mx-auto px-4 py-12">
-        <div class="max-w-6xl mx-auto">
-            <!-- 头部横幅 -->
-            <div class="text-center mb-16">
-                <h1 class="text-5xl font-bold text-gray-800 mb-6">
-                    欢迎使用 AI课程助手系统
-                </h1>
-                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
-                    智能化的教学管理平台，为学生和老师提供个性化的学习体验和教学支持
-                </p>
-            </div>
-
-            <!-- 功能特色 -->
-            <div class="grid md:grid-cols-3 gap-8 mb-16">
-                <div class="bg-white rounded-xl shadow-lg p-8 text-center hover:shadow-xl transition duration-300">
-                    <div class="text-4xl mb-4">🎯</div>
-                    <h3 class="text-xl font-semibold text-gray-800 mb-3">个性化学习</h3>
-                    <p class="text-gray-600">AI智能分析学习习惯，提供个性化学习路径和资源推荐</p>
-                </div>
-                
-                <div class="bg-white rounded-xl shadow-lg p-8 text-center hover:shadow-xl transition duration-300">
-                    <div class="text-4xl mb-4">📊</div>
-                    <h3 class="text-xl font-semibold text-gray-800 mb-3">智能评估</h3>
-                    <p class="text-gray-600">实时学习进度跟踪，智能评估学习效果和知识掌握程度</p>
-                </div>
-                
-                <div class="bg-white rounded-xl shadow-lg p-8 text-center hover:shadow-xl transition duration-300">
-                    <div class="text-4xl mb-4">🤝</div>
-                    <h3 class="text-xl font-semibold text-gray-800 mb-3">师生互动</h3>
-                    <p class="text-gray-600">便捷的师生沟通渠道，支持在线答疑和作业提交</p>
-                </div>
-            </div>
-
-            <!-- 角色介绍 -->
-            <div class="grid md:grid-cols-2 gap-8 mb-16">
-                <!-- 学生专区 -->
-                <div class="bg-white rounded-xl shadow-lg p-8">
-                    <div class="flex items-center mb-6">
-                        <div class="text-3xl mr-3">👨‍🎓</div>
-                        <h2 class="text-2xl font-semibold text-gray-800">学生专区</h2>
-                    </div>
-                    <ul class="space-y-3 text-gray-600 mb-6">
-                        <li class="flex items-center">
-                            <span class="text-green-500 mr-2">✓</span>
-                            查看课程安排和学习进度
-                        </li>
-                        <li class="flex items-center">
-                            <span class="text-green-500 mr-2">✓</span>
-                            提交作业和在线测试
-                        </li>
-                        <li class="flex items-center">
-                            <span class="text-green-500 mr-2">✓</span>
-                            获取个性化学习建议
-                        </li>
-                        <li class="flex items-center">
-                            <span class="text-green-500 mr-2">✓</span>
-                            与老师和同学交流讨论
-                        </li>
-                    </ul>
-                    <a href="/student/login" class="inline-block bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg font-medium transition duration-200">
-                        立即登录
-                    </a>
-                </div>
-
-                <!-- 老师专区 -->
-                <div class="bg-white rounded-xl shadow-lg p-8">
-                    <div class="flex items-center mb-6">
-                        <div class="text-3xl mr-3">👨‍🏫</div>
-                        <h2 class="text-2xl font-semibold text-gray-800">老师专区</h2>
-                    </div>
-                    <ul class="space-y-3 text-gray-600 mb-6">
-                        <li class="flex items-center">
-                            <span class="text-blue-500 mr-2">✓</span>
-                            管理课程内容和教学计划
-                        </li>
-                        <li class="flex items-center">
-                            <span class="text-blue-500 mr-2">✓</span>
-                            批改作业和评估学生表现
-                        </li>
-                        <li class="flex items-center">
-                            <span class="text-blue-500 mr-2">✓</span>
-                            查看学生学习数据分析
-                        </li>
-                        <li class="flex items-center">
-                            <span class="text-blue-500 mr-2">✓</span>
-                            与学生在线互动答疑
-                        </li>
-                    </ul>
-                    <a href="/teacher/login" class="inline-block bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-medium transition duration-200">
-                        立即登录
-                    </a>
-                </div>
-            </div>
-
-            <!-- 系统特色 -->
-            <div class="bg-white rounded-xl shadow-lg p-8">
-                <h2 class="text-2xl font-semibold text-gray-800 mb-6 text-center">系统特色</h2>
-                <div class="grid md:grid-cols-2 gap-8">
-                    <div>
-                        <h3 class="text-lg font-medium text-gray-800 mb-3">🤖 AI智能助手</h3>
-                        <p class="text-gray-600">集成先进的AI技术，提供智能化的学习建议和教学支持</p>
-                    </div>
-                    <div>
-                        <h3 class="text-lg font-medium text-gray-800 mb-3">📱 响应式设计</h3>
-                        <p class="text-gray-600">支持各种设备访问，随时随地享受便捷的学习体验</p>
-                    </div>
-                    <div>
-                        <h3 class="text-lg font-medium text-gray-800 mb-3">🔒 安全可靠</h3>
-                        <p class="text-gray-600">采用先进的安全技术，保护用户隐私和数据安全</p>
-                    </div>
-                    <div>
-                        <h3 class="text-lg font-medium text-gray-800 mb-3">📈 持续优化</h3>
-                        <p class="text-gray-600">基于用户反馈持续改进，提供更好的服务体验</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- 主要内容 - 背景图片 -->
+    <div class="bg-image" style="height: calc(100vh - 64px);"></div>
+    
 </body>
 </html> 
