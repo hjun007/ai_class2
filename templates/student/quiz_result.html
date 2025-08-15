@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>提交结果 - AI课程助手系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <!-- 顶部导航栏 -->
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <h1 class="text-xl font-bold text-blue-600">📋 答题结果</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="text-gray-600">欢迎，{{ session.student_id or '学生' }}</span>
+                    <a href="/student/quiz" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition duration-200">
+                        返回试卷列表
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主要内容 -->
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-4xl mx-auto">
+            <!-- 提交成功头部 -->
+            <div class="text-center mb-8">
+                <div class="w-24 h-24 mx-auto mb-6 bg-green-100 rounded-full flex items-center justify-center">
+                    <span class="text-5xl text-green-600">✅</span>
+                </div>
+                <h2 class="text-3xl font-bold text-gray-800 mb-2">试卷提交成功！</h2>
+                <p class="text-gray-600">{{ paper.name }}</p>
+            </div>
+
+            <!-- 成绩总览 -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="bg-white rounded-xl shadow-lg p-6 text-center">
+                    <div class="text-3xl font-bold text-blue-600 mb-2">{{ result.total_submitted }}</div>
+                    <div class="text-gray-600">已答题目</div>
+                </div>
+                <div class="bg-white rounded-xl shadow-lg p-6 text-center">
+                    <div class="text-3xl font-bold text-green-600 mb-2">{{ result.total_correct }}</div>
+                    <div class="text-gray-600">答对题目</div>
+                </div>
+                <div class="bg-white rounded-xl shadow-lg p-6 text-center">
+                    <div class="text-3xl font-bold text-purple-600 mb-2">{{ "%.1f"|format(result.total_score) }}</div>
+                    <div class="text-gray-600">总得分 (满分{{ "%.1f"|format(result.max_score) }})</div>
+                </div>
+            </div>
+
+            <!-- 正确率显示 -->
+            <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4 text-center">答题准确率</h3>
+                <div class="flex justify-center items-center">
+                    {% set accuracy = (result.total_correct / result.total_submitted * 100) if result.total_submitted > 0 else 0 %}
+                    <div class="text-center">
+                        <div class="w-32 h-32 mx-auto mb-4 bg-gradient-to-r from-green-400 to-blue-500 rounded-full flex items-center justify-center">
+                            <div class="w-24 h-24 bg-white rounded-full flex items-center justify-center">
+                                <div class="text-center">
+                                    <div class="text-3xl font-bold text-gray-800">{{ "%.0f"|format(accuracy) }}%</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-lg font-medium text-gray-600">准确率</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 详细答题情况 -->
+            {% if result.answer_details %}
+            <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+                <h3 class="text-xl font-semibold text-gray-800 mb-6">详细答题情况</h3>
+                <div class="space-y-4">
+                    {% for detail in result.answer_details %}
+                    <div class="border-l-4 {{ 'border-green-500 bg-green-50' if detail.is_correct else 'border-red-500 bg-red-50' }} p-4 rounded-r-lg">
+                        <div class="flex justify-between items-start mb-2">
+                            <h4 class="font-medium text-gray-800">第 {{ detail.question_order }} 题</h4>
+                            <div class="flex items-center space-x-2">
+                                <span class="{{ 'text-green-600' if detail.is_correct else 'text-red-600' }}">
+                                    {{ '✅ 正确' if detail.is_correct else '❌ 错误' }}
+                                </span>
+                                <span class="text-gray-600">{{ detail.score }} 分</span>
+                            </div>
+                        </div>
+                        <p class="text-gray-700 mb-3">{{ detail.question_content[:100] }}{{ '...' if detail.question_content|length > 100 else '' }}</p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                            <div>
+                                <span class="font-medium text-gray-600">你的答案：</span>
+                                <span class="text-gray-800">{{ detail.student_answer }}</span>
+                            </div>
+                            <div>
+                                <span class="font-medium text-gray-600">正确答案：</span>
+                                <span class="text-green-600 font-medium">{{ detail.correct_answer }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- 操作按钮 -->
+            <div class="flex justify-center space-x-4">
+                <a href="/student/quiz" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-medium transition duration-200">
+                    返回试卷列表
+                </a>
+                <a href="/student/take_quiz/{{ paper.id }}" class="bg-gray-500 hover:bg-gray-600 text-white px-8 py-3 rounded-lg font-medium transition duration-200">
+                    重新答题
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+</html> 

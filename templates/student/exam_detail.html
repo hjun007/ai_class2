@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>考试详情 - AI课程助手系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <!-- 顶部导航栏 -->
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <h1 class="text-xl font-bold text-blue-600">📋 考试详情</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="text-gray-600">欢迎，{{ session.student_id or '学生' }}</span>
+                    <a href="/student/exam_management" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition duration-200">
+                        返回考试管理
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主要内容 -->
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-5xl mx-auto">
+            <!-- 考试基本信息 -->
+            <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+                <div class="text-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-2">{{ paper.name }}</h2>
+                    <p class="text-gray-600">考试时间：{{ exam_record.submit_time.strftime('%Y年%m月%d日 %H:%M:%S') }}</p>
+                </div>
+
+                <!-- 成绩统计 -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <div class="text-center p-4 bg-blue-50 rounded-lg">
+                        <div class="text-2xl font-bold text-blue-600">{{ exam_record.answered_questions }}/{{ exam_record.total_questions }}</div>
+                        <div class="text-gray-600">已答题目</div>
+                    </div>
+                    <div class="text-center p-4 bg-green-50 rounded-lg">
+                        <div class="text-2xl font-bold text-green-600">{{ exam_record.correct_answers }}</div>
+                        <div class="text-gray-600">答对题目</div>
+                    </div>
+                    <div class="text-center p-4 bg-purple-50 rounded-lg">
+                        <div class="text-2xl font-bold text-purple-600">{{ "%.1f"|format(exam_record.total_score) }}</div>
+                        <div class="text-gray-600">总得分</div>
+                    </div>
+                    <div class="text-center p-4 bg-orange-50 rounded-lg">
+                        <div class="text-2xl font-bold text-orange-600">{{ "%.1f"|format(exam_record.accuracy_rate) }}%</div>
+                        <div class="text-gray-600">正确率</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 详细答题情况 -->
+            {% if answer_details %}
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h3 class="text-xl font-semibold text-gray-800 mb-6">详细答题情况</h3>
+                <div class="space-y-6">
+                    {% for detail in answer_details %}
+                    <div class="border-l-4 {{ 'border-green-500 bg-green-50' if detail.is_correct else 'border-red-500 bg-red-50' }} p-6 rounded-r-lg">
+                        <div class="flex justify-between items-start mb-4">
+                            <h4 class="text-lg font-medium text-gray-800">第 {{ detail.question_order }} 题</h4>
+                            <div class="flex items-center space-x-4">
+                                <span class="{{ 'text-green-600' if detail.is_correct else 'text-red-600' }} font-medium">
+                                    {{ '✅ 正确' if detail.is_correct else '❌ 错误' }}
+                                </span>
+                                <span class="text-gray-600">{{ detail.score }}/{{ detail.max_score }} 分</span>
+                            </div>
+                        </div>
+                        
+                        <!-- 题目内容 -->
+                        <div class="mb-4 p-4 bg-white rounded-lg border">
+                            <h5 class="font-medium text-gray-700 mb-2">题目：</h5>
+                            <p class="text-gray-800">{{ detail.question_content }}</p>
+                        </div>
+                        
+                        <!-- 答案对比 -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="p-4 {{ 'bg-red-100' if not detail.is_correct else 'bg-green-100' }} rounded-lg">
+                                <h5 class="font-medium text-gray-700 mb-2">你的答案：</h5>
+                                <p class="text-gray-800">{{ detail.student_answer }}</p>
+                            </div>
+                            <div class="p-4 bg-green-100 rounded-lg">
+                                <h5 class="font-medium text-gray-700 mb-2">正确答案：</h5>
+                                <p class="text-green-800 font-medium">{{ detail.correct_answer }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% else %}
+            <div class="bg-white rounded-xl shadow-lg p-6 text-center">
+                <p class="text-gray-600">没有找到答题详情</p>
+            </div>
+            {% endif %}
+
+            <!-- 操作按钮 -->
+            <div class="flex justify-center space-x-4 mt-8">
+                <a href="/student/exam_management" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-medium transition duration-200">
+                    返回考试管理
+                </a>
+                {% if paper.status == 'published' %}
+                <a href="/student/take_quiz/{{ paper.id }}" class="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-lg font-medium transition duration-200">
+                    重新考试
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</body>
+</html> 

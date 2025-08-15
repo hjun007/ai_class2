@@ -15,8 +15,8 @@
                     <h1 class="text-xl font-bold text-green-600">👨‍🎓 学生仪表板</h1>
                 </div>
                 <div class="flex items-center space-x-4">
-                    <span class="text-gray-600">欢迎，学生</span>
-                    <a href="/" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition duration-200">
+                    <span class="text-gray-600">欢迎，{{ session.student_id or '学生' }}</span>
+                    <a href="/student/logout" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition duration-200">
                         退出登录
                     </a>
                 </div>
@@ -42,7 +42,18 @@
                             <span class="text-3xl text-white">📝</span>
                         </div>
                         <h3 class="text-lg font-semibold text-gray-800 mb-2">在线答题</h3>
-                        <p class="text-sm text-gray-600">参与在线测试，检验学习成果</p>
+                        <p class="text-sm text-gray-600">参与测试，检验学习成果</p>
+                    </div>
+                </a>
+
+                <!-- 考试管理模块 -->
+                <a href="/student/exam_management" class="group">
+                    <div class="bg-white rounded-2xl shadow-lg p-6 text-center hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 border-2 border-transparent hover:border-green-300">
+                        <div class="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                            <span class="text-3xl text-white">📊</span>
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-800 mb-2">考试管理</h3>
+                        <p class="text-sm text-gray-600">查看考试记录和成绩统计</p>
                     </div>
                 </a>
 

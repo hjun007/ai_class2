@@ -5,16 +5,64 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI智能体 - AI课程助手系统</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .chat-container {
+            height: calc(100vh - 200px);
+        }
+        .chat-messages {
+            height: calc(100% - 120px);
+        }
+        .typing-indicator {
+            display: none;
+        }
+        .typing-indicator.show {
+            display: flex;
+        }
+        .typing-dot {
+            animation: typing 1.4s infinite;
+        }
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        @keyframes typing {
+            0%, 60%, 100% {
+                transform: translateY(0);
+            }
+            30% {
+                transform: translateY(-10px);
+            }
+        }
+        .message {
+            animation: slideIn 0.3s ease-out;
+        }
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
 </head>
-<body class="bg-gradient-to-br from-purple-50 to-purple-100 min-h-screen">
+<body class="bg-gradient-to-br from-purple-50 to-indigo-100 min-h-screen">
     <!-- 顶部导航栏 -->
     <nav class="bg-white shadow-lg">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-16">
                 <div class="flex items-center">
-                    <h1 class="text-xl font-bold text-purple-600">🤖 AI智能体</h1>
+                    <h1 class="text-xl font-bold text-purple-600">🤖 AI智能体助手</h1>
                 </div>
                 <div class="flex items-center space-x-4">
+                    <span class="text-gray-600">欢迎，{{ session.student_id or '学生' }}</span>
+                    <button onclick="clearChat()" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition duration-200">
+                        清空对话
+                    </button>
                     <a href="/student/dashboard" class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg transition duration-200">
                         返回仪表板
                     </a>
@@ -23,18 +71,199 @@
         </div>
     </nav>
 
-    <!-- 主要内容 -->
-    <div class="min-h-screen flex items-center justify-center">
-        <div class="text-center">
-            <div class="w-32 h-32 mx-auto mb-8 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center">
-                <span class="text-5xl text-white">🤖</span>
+    <!-- 主要对话界面 -->
+    <div class="container mx-auto px-4 py-6">
+        <div class="max-w-4xl mx-auto">
+            <div class="bg-white rounded-xl shadow-lg chat-container">
+                <!-- 对话消息区域 -->
+                <div class="chat-messages overflow-y-auto p-6 space-y-4" id="chatMessages">
+                    <!-- 欢迎消息 -->
+                    <div class="flex items-start space-x-3 message">
+                        <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
+                            <span class="text-white text-lg">🤖</span>
+                        </div>
+                        <div class="bg-purple-50 rounded-lg p-4 max-w-md">
+                            <p class="text-gray-800">你好！我是AI智能体助手，可以帮你解答学习问题、提供课程辅导。有什么我可以帮助你的吗？</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 正在输入指示器 -->
+                <div class="typing-indicator px-6 mb-4" id="typingIndicator">
+                    <div class="flex items-start space-x-3">
+                        <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
+                            <span class="text-white text-lg">🤖</span>
+                        </div>
+                        <div class="bg-purple-50 rounded-lg p-4">
+                            <div class="flex space-x-1">
+                                <div class="w-2 h-2 bg-purple-500 rounded-full typing-dot"></div>
+                                <div class="w-2 h-2 bg-purple-500 rounded-full typing-dot"></div>
+                                <div class="w-2 h-2 bg-purple-500 rounded-full typing-dot"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 输入区域 -->
+                <div class="border-t p-6">
+                    <div class="flex space-x-4">
+                        <input 
+                            type="text" 
+                            id="messageInput" 
+                            placeholder="输入你的问题..."
+                            class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                            onkeypress="handleKeyPress(event)"
+                        >
+                        <button 
+                            onclick="sendMessage()" 
+                            id="sendButton"
+                            class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-medium transition duration-200 flex items-center space-x-2"
+                        >
+                            <span>发送</span>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
             </div>
-            <h1 class="text-4xl font-bold text-gray-800 mb-4">AI智能体助手</h1>
-            <p class="text-xl text-gray-600 mb-8">功能正在开发中，敬请期待...</p>
-            <a href="/student/dashboard" class="bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-lg font-medium transition duration-200">
-                返回仪表板
-            </a>
         </div>
     </div>
+
+    <script>
+        let conversationHistory = [];
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        function addMessage(content, isUser = false) {
+            const messagesContainer = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'flex items-start space-x-3 message';
+            
+            if (isUser) {
+                messageDiv.innerHTML = `
+                    <div class="flex-1"></div>
+                    <div class="bg-blue-500 text-white rounded-lg p-4 max-w-md">
+                        <p>${content}</p>
+                    </div>
+                    <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
+                        <span class="text-white text-lg">👨‍🎓</span>
+                    </div>
+                `;
+                messageDiv.className += ' flex-row-reverse';
+            } else {
+                messageDiv.innerHTML = `
+                    <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
+                        <span class="text-white text-lg">🤖</span>
+                    </div>
+                    <div class="bg-purple-50 rounded-lg p-4 max-w-md">
+                        <p class="text-gray-800">${content}</p>
+                    </div>
+                `;
+            }
+            
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function showTypingIndicator() {
+            document.getElementById('typingIndicator').classList.add('show');
+            const messagesContainer = document.getElementById('chatMessages');
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function hideTypingIndicator() {
+            document.getElementById('typingIndicator').classList.remove('show');
+        }
+
+        function toggleSendButton(disabled) {
+            const button = document.getElementById('sendButton');
+            const input = document.getElementById('messageInput');
+            
+            if (disabled) {
+                button.disabled = true;
+                button.classList.add('opacity-50', 'cursor-not-allowed');
+                input.disabled = true;
+            } else {
+                button.disabled = false;
+                button.classList.remove('opacity-50', 'cursor-not-allowed');
+                input.disabled = false;
+            }
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            // 添加用户消息
+            addMessage(message, true);
+            input.value = '';
+            
+            // 禁用发送按钮和输入框
+            toggleSendButton(true);
+            showTypingIndicator();
+            
+            try {
+                // 发送请求到后端
+                const response = await fetch('/student/ai_chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message: message,
+                        conversation_history: conversationHistory
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // 更新对话历史
+                    conversationHistory = data.conversation_history;
+                    
+                    // 添加AI回复
+                    addMessage(data.response);
+                } else {
+                    addMessage('抱歉，我遇到了一些问题，请稍后再试。错误：' + (data.error || '未知错误'));
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                addMessage('网络连接出现问题，请检查网络后重试。');
+            } finally {
+                hideTypingIndicator();
+                toggleSendButton(false);
+                input.focus();
+            }
+        }
+
+        function clearChat() {
+            if (confirm('确定要清空对话记录吗？')) {
+                conversationHistory = [];
+                const messagesContainer = document.getElementById('chatMessages');
+                messagesContainer.innerHTML = `
+                    <div class="flex items-start space-x-3 message">
+                        <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
+                            <span class="text-white text-lg">🤖</span>
+                        </div>
+                        <div class="bg-purple-50 rounded-lg p-4 max-w-md">
+                            <p class="text-gray-800">对话已清空。有什么我可以帮助你的吗？</p>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // 页面加载完成后自动聚焦输入框
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('messageInput').focus();
+        });
+    </script>
 </body>
 </html> 

@@ -3,13 +3,12 @@ from routes.main import main_bp
 from routes.student import student_bp
 from routes.teacher import teacher_bp
 from models import db
+from config import Config
 
 app = Flask(__name__)
 
-# 数据库配置
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///quiz.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SECRET_KEY'] = 'your-secret-key-here'
+# 使用配置类
+app.config.from_object(Config)
 
 # 初始化数据库
 db.init_app(app)

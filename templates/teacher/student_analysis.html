@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>学生分析 - AI课程助手系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <!-- 顶部导航栏 -->
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <h1 class="text-xl font-bold text-blue-600">🔍 学生分析 - {{ student_id }}</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="/teacher/statistics" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition duration-200">
+                        返回统计分析
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主要内容 -->
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-7xl mx-auto">
+            <!-- 基础统计卡片 -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white rounded-xl shadow-lg p-6 text-center">
+                    <div class="text-3xl font-bold text-blue-600 mb-2">{{ analysis_data.basic_stats.total_exams }}</div>
+                    <div class="text-gray-600">考试次数</div>
+                </div>
+                <div class="bg-white rounded-xl shadow-lg p-6 text-center">
+                    <div class="text-3xl font-bold text-green-600 mb-2">{{ analysis_data.basic_stats.average_score }}</div>
+                    <div class="text-gray-600">平均分</div>
+                </div>
+                <div class="bg-white rounded-xl shadow-lg p-6 text-center">
+                    <div class="text-3xl font-bold text-purple-600 mb-2">{{ analysis_data.basic_stats.success_rate }}%</div>
+                    <div class="text-gray-600">正确率</div>
+                </div>
+                <div class="bg-white rounded-xl shadow-lg p-6 text-center">
+                    <div class="text-3xl font-bold text-orange-600 mb-2">{{ analysis_data.basic_stats.total_score }}/{{ analysis_data.basic_stats.total_max_score }}</div>
+                    <div class="text-gray-600">总得分</div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <!-- 考试趋势图 -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">考试成绩趋势</h3>
+                    <canvas id="trendChart" width="400" height="300"></canvas>
+                </div>
+
+                <!-- 错误分析图 -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">错误题目分类</h3>
+                    {% if analysis_data.error_patterns %}
+                    <canvas id="errorChart" width="400" height="300"></canvas>
+                    {% else %}
+                    <div class="flex items-center justify-center h-64 text-gray-500">
+                        <div class="text-center">
+                            <div class="text-4xl mb-2">🎉</div>
+                            <p>恭喜！该学生暂无错误记录</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- AI智能分析 -->
+            <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-semibold text-gray-800">AI智能分析报告</h3>
+                    <button 
+                        onclick="generateAnalysis()" 
+                        id="generateBtn"
+                        class="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-6 py-2 rounded-lg font-medium transition duration-200 flex items-center space-x-2"
+                    >
+                        <span>🤖</span>
+                        <span>生成分析报告</span>
+                    </button>
+                </div>
+
+                <!-- 分析结果区域 -->
+                <div id="analysisResult" class="hidden">
+                    <div class="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-6 border-l-4 border-purple-500">
+                        <div id="analysisContent" class="prose max-w-none"></div>
+                    </div>
+                </div>
+
+                <!-- 加载指示器 -->
+                <div id="loadingIndicator" class="hidden flex items-center justify-center py-8">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+                    <span class="ml-3 text-gray-600">AI正在分析中...</span>
+                </div>
+
+                <!-- 默认提示 -->
+                <div id="defaultPrompt" class="text-center py-8 text-gray-500">
+                    <div class="text-4xl mb-4">🤖</div>
+                    <p class="text-lg">点击上方按钮，让AI为该学生生成专业的学习分析报告</p>
+                    <p class="text-sm mt-2">报告将包含学习表现评价、强弱项分析、改进建议等内容</p>
+                </div>
+            </div>
+
+            <!-- 详细答题情况 -->
+            {% if analysis_data.papers_analysis %}
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h3 class="text-xl font-semibold text-gray-800 mb-6">详细答题情况</h3>
+                
+                {% for paper_id, questions in analysis_data.papers_analysis.items() %}
+                <div class="mb-8">
+                    <h4 class="text-lg font-medium text-gray-700 mb-4">试卷：{{ questions[0].paper_name }}</h4>
+                    
+                    <div class="space-y-4">
+                        {% for question in questions %}
+                        <div class="border-l-4 {{ 'border-green-500 bg-green-50' if question.is_correct else 'border-red-500 bg-red-50' }} p-4 rounded-r-lg">
+                            <div class="flex justify-between items-start mb-3">
+                                <h5 class="font-medium text-gray-800">题目内容</h5>
+                                <span class="{{ 'text-green-600' if question.is_correct else 'text-red-600' }} font-medium">
+                                    {{ '✅ 正确' if question.is_correct else '❌ 错误' }}
+                                    ({{ question.score }}分)
+                                </span>
+                            </div>
+                            
+                            <p class="text-gray-700 mb-3">{{ question.question_content }}</p>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                                <div class="p-3 {{ 'bg-red-100' if not question.is_correct else 'bg-green-100' }} rounded">
+                                    <span class="font-medium text-gray-700">学生答案：</span>
+                                    <span class="text-gray-800">{{ question.student_answer }}</span>
+                                </div>
+                                <div class="p-3 bg-green-100 rounded">
+                                    <span class="font-medium text-gray-700">正确答案：</span>
+                                    <span class="text-green-800 font-medium">{{ question.correct_answer }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        // 绘制考试趋势图
+        const trendCtx = document.getElementById('trendChart').getContext('2d');
+        const examTrends = {{ analysis_data.exam_trends|tojson|safe }};
+        
+        const trendLabels = examTrends.map(item => item.date);
+        const trendRates = examTrends.map(item => item.rate);
+        
+        new Chart(trendCtx, {
+            type: 'line',
+            data: {
+                labels: trendLabels,
+                datasets: [{
+                    label: '正确率(%)',
+                    data: trendRates,
+                    borderColor: 'rgb(59, 130, 246)',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100
+                    }
+                }
+            }
+        });
+
+        // 绘制错误分析图
+        {% if analysis_data.error_patterns %}
+        const errorCtx = document.getElementById('errorChart').getContext('2d');
+        const errorPatterns = {{ analysis_data.error_patterns|tojson|safe }};
+        
+        const errorLabels = errorPatterns.map(item => item.category);
+        const errorCounts = errorPatterns.map(item => item.error_count);
+        
+        new Chart(errorCtx, {
+            type: 'doughnut',
+            data: {
+                labels: errorLabels,
+                datasets: [{
+                    data: errorCounts,
+                    backgroundColor: [
+                        'rgba(239, 68, 68, 0.8)',
+                        'rgba(245, 158, 11, 0.8)',
+                        'rgba(34, 197, 94, 0.8)',
+                        'rgba(147, 51, 234, 0.8)',
+                        'rgba(59, 130, 246, 0.8)'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+        {% endif %}
+
+        // AI分析功能
+        async function generateAnalysis() {
+            const generateBtn = document.getElementById('generateBtn');
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            const analysisResult = document.getElementById('analysisResult');
+            const defaultPrompt = document.getElementById('defaultPrompt');
+            const analysisContent = document.getElementById('analysisContent');
+            
+            // 显示加载状态
+            generateBtn.disabled = true;
+            generateBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            loadingIndicator.classList.remove('hidden');
+            defaultPrompt.classList.add('hidden');
+            analysisResult.classList.add('hidden');
+            
+            try {
+                const response = await fetch('/teacher/api/generate_student_analysis', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        student_id: '{{ student_id }}'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // 使用marked.js渲染Markdown
+                    analysisContent.innerHTML = marked.parse(data.analysis);
+                    analysisResult.classList.remove('hidden');
+                } else {
+                    analysisContent.innerHTML = '<div class="text-red-600">分析生成失败：' + (data.error || '未知错误') + '</div>';
+                    analysisResult.classList.remove('hidden');
+                }
+            } catch (error) {
+                analysisContent.innerHTML = '<div class="text-red-600">网络错误：' + error.message + '</div>';
+                analysisResult.classList.remove('hidden');
+            } finally {
+                // 恢复按钮状态
+                generateBtn.disabled = false;
+                generateBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                loadingIndicator.classList.add('hidden');
+            }
+        }
+    </script>
+</body>
+</html> 
