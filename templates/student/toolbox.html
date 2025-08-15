@@ -5,8 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>学习工具箱 - AI课程助手系统</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .line-clamp-1 {
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .tool-card {
+            width: 192px;
+            height: 192px;
+        }
+    </style>
 </head>
-<body class="bg-gradient-to-br from-blue-50 to-purple-100 min-h-screen">
+<body class="bg-gradient-to-br from-blue-50 to-purple-100 min-h-screen flex flex-col">
     <!-- 顶部导航栏 -->
     <nav class="bg-white shadow-lg">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -25,107 +37,68 @@
     </nav>
 
     <!-- 主要内容 -->
-    <div class="container mx-auto px-4 py-8">
+    <div class="flex-grow container mx-auto px-4 py-8">
         <div class="max-w-6xl mx-auto">
             
             {% if tools %}
-            <!-- 工具统计 -->
-            <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="text-center">
-                        <div class="text-2xl font-bold text-blue-600 mb-1">{{ tools|length }}</div>
-                        <div class="text-gray-600">可用工具</div>
-                    </div>
-                    <div class="text-center">
-                        <div class="text-2xl font-bold text-green-600 mb-1">{{ tools|sum(attribute='views') }}</div>
-                        <div class="text-gray-600">总使用次数</div>
-                    </div>
-                    <div class="text-center">
-                        <div class="text-2xl font-bold text-purple-600 mb-1">5</div>
-                        <div class="text-gray-600">已上线工具</div>
-                    </div>
-                </div>
-            </div> 
-
             <!-- 工具列表 -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="flex flex-wrap gap-6 pb-32">
                 {% for tool in tools %}
-                <div class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2">
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 tool-card flex flex-col">
                     <!-- 工具头部 -->
-                    <div class="bg-gradient-to-r from-blue-500 to-purple-600 p-4">
+                    <div class="bg-gradient-to-r from-blue-500 to-purple-600 p-2.5 flex-shrink-0">
                         <div class="flex items-center justify-between">
-                            <h3 class="text-lg font-semibold text-white">{{ tool.name }}</h3>
-                            <div class="bg-white bg-opacity-20 rounded-full p-2">
-                                <span class="text-2xl">🛠️</span>
+                            <h3 class="text-base font-semibold text-white truncate">{{ tool.name }}</h3>
+                            <div class="bg-white bg-opacity-20 rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 ml-2">
+                                <span class="text-xs">🛠️</span>
                             </div>
                         </div>
                     </div>
 
                     <!-- 工具内容 -->
-                    <div class="p-6">
-                        {% if tool.description %}
-                        <p class="text-gray-600 text-sm mb-4 line-clamp-3">{{ tool.description }}</p>
-                        {% else %}
-                        <p class="text-gray-500 text-sm mb-4 italic">暂无描述</p>
-                        {% endif %}
-
-                        <!-- 工具信息 -->
-                        <div class="flex items-center justify-between text-xs text-gray-500 mb-4">
-                            <div class="flex items-center space-x-4">
-                                <span>👁️ {{ tool.views }} 次使用</span>
-                                <span>📅 {{ tool.upload_time.strftime('%m-%d') }}</span>
-                            </div>
-                            <span class="inline-flex items-center px-2 py-1 rounded-full bg-green-100 text-green-800">
-                                ✅ 可用
-                            </span>
+                    <div class="p-2.5 flex flex-col flex-grow justify-between">
+                        <!-- 描述区域 -->
+                        <div class="flex-grow">
+                            {% if tool.description %}
+                            <p class="text-gray-600 text-sm mb-2 line-clamp-1">{{ tool.description }}</p>
+                            {% else %}
+                            <p class="text-gray-500 text-sm mb-2 italic">暂无描述</p>
+                            {% endif %}
                         </div>
 
-                        <!-- 使用按钮 -->
-                        <a 
-                            href="/student/toolbox/tool/{{ tool.id }}" 
-                            target="_blank"
-                            class="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-3 px-4 rounded-lg font-medium transition duration-200 flex items-center justify-center space-x-2 group"
-                        >
-                            <span>🚀</span>
-                            <span>立即使用</span>
-                            <span class="group-hover:translate-x-1 transition-transform duration-200">→</span>
-                        </a>
+                        <!-- 底部信息和按钮 -->
+                        <div class="space-y-1.5">
+                            <!-- 工具信息 -->
+                            <div class="flex items-center justify-between text-xs text-gray-500">
+                                <div class="flex items-center space-x-2">
+                                    <span>👁️ {{ tool.views }}</span>
+                                    <span>📅 {{ tool.upload_time.strftime('%m-%d') }}</span>
+                                </div>
+                                <span class="inline-flex items-center px-1.5 py-0.5 rounded-full bg-green-100 text-green-800 text-xs">
+                                    ✅
+                                </span>
+                            </div>
+
+                            <!-- 使用按钮 -->
+                            <a 
+                                href="/student/toolbox/tool/{{ tool.id }}" 
+                                target="_blank"
+                                class="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-2 px-3 rounded-lg font-medium transition duration-200 flex items-center justify-center space-x-1 text-sm"
+                            >
+                                <span class="text-xs">🚀</span>
+                                <span>立即使用</span>
+                            </a>
+                        </div>
                     </div>
                 </div>
                 {% endfor %}
-            </div>
-
-            <!-- 使用提示 -->
-            <div class="mt-8 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 border border-blue-200">
-                <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-                    <span class="text-2xl mr-2">💡</span>
-                    使用提示
-                </h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-700">
-                    <div class="flex items-start space-x-2">
-                        <span class="text-blue-500 mt-1">•</span>
-                        <span>点击"立即使用"会在新窗口打开工具</span>
-                    </div>
-                    <div class="flex items-start space-x-2">
-                        <span class="text-blue-500 mt-1">•</span>
-                        <span>所有工具都支持键盘操作</span>
-                    </div>
-                    <div class="flex items-start space-x-2">
-                        <span class="text-blue-500 mt-1">•</span>
-                        <span>工具数据不会保存，请及时记录结果</span>
-                    </div>
-                    <div class="flex items-start space-x-2">
-                        <span class="text-blue-500 mt-1">•</span>
-                        <span>遇到问题可以刷新页面重新开始</span>
-                    </div>
-                </div>
             </div>
 
             {% else %}
             <!-- 空状态 -->
             <div class="text-center py-16 bg-white rounded-xl shadow-lg">
                 <div class="w-32 h-32 mx-auto mb-8 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center">
-                    <span class="text-5xl text-gray-400">🧰</span>
+                    <span class="text-2xl text-gray-400">🧰</span>
                 </div>
                 <h2 class="text-2xl font-semibold text-gray-600 mb-4">暂无可用工具</h2>
                 <p class="text-gray-500 mb-8">老师还没有上线任何学习工具</p>
@@ -166,6 +139,34 @@
                 </div>
             </div>
             {% endif %}
+        </div>
+    </div>
+
+    <!-- 使用提示 - 固定在底部 -->
+    <div class="bg-gradient-to-r from-blue-50 to-purple-50 border-t border-blue-200 p-6">
+        <div class="max-w-6xl mx-auto">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                <span class="text-sm mr-2">💡</span>
+                使用提示
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-700">
+                <div class="flex items-start space-x-2">
+                    <span class="text-blue-500 mt-1">•</span>
+                    <span>点击"立即使用"会在新窗口打开工具</span>
+                </div>
+                <div class="flex items-start space-x-2">
+                    <span class="text-blue-500 mt-1">•</span>
+                    <span>所有工具都支持键盘操作</span>
+                </div>
+                <div class="flex items-start space-x-2">
+                    <span class="text-blue-500 mt-1">•</span>
+                    <span>工具数据不会保存，请及时记录结果</span>
+                </div>
+                <div class="flex items-start space-x-2">
+                    <span class="text-blue-500 mt-1">•</span>
+                    <span>遇到问题可以刷新页面重新开始</span>
+                </div>
+            </div>
         </div>
     </div>
 
