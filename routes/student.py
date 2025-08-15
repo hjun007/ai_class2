@@ -4,6 +4,7 @@ from models.paper_quiz import PaperQuiz
 from models.quiz import Quiz
 from models.answer import Answer
 from models.exam_record import ExamRecord
+from models.tool import Tool
 from openai import OpenAI
 from config import Config
 import os
@@ -106,7 +107,7 @@ def ai_assistant():
         flash('请先登录！', 'error')
         return redirect(url_for('student.login'))
     
-    return render_template('student/ai_assistant.html')
+    return render_template('student/ai_assistant.html') 
 
 @student_bp.route('/ai_chat', methods=['POST'])
 def ai_chat():
@@ -449,4 +450,52 @@ def logout():
     """学生退出登录"""
     session.clear()
     flash('已退出登录！', 'info')
-    return redirect(url_for('student.login')) 
+    return redirect(url_for('student.login'))
+
+@student_bp.route('/toolbox')
+def toolbox():
+    """学生工具箱页面"""
+    # 检查登录状态
+    if 'student_id' not in session:
+        flash('请先登录！', 'error')
+        return redirect(url_for('student.login'))
+    
+    # 获取已上线的工具
+    online_tools = Tool.get_online_tools()
+    
+    return render_template('student/toolbox.html', tools=online_tools)
+
+@student_bp.route('/toolbox/tool/<int:tool_id>')
+def use_tool(tool_id):
+    """使用工具"""
+    # 检查登录状态
+    if 'student_id' not in session:
+        flash('请先登录！', 'error')
+        return redirect(url_for('student.login'))
+    
+    # 获取工具信息
+    tool = Tool.get_tool_by_id(tool_id)
+    if not tool:
+        flash('工具不存在！', 'error')
+        return redirect(url_for('student.toolbox'))
+    
+    # 检查工具是否已上线
+    if tool.status != 'online':
+        flash('该工具暂时不可用！', 'error')
+        return redirect(url_for('student.toolbox'))
+    
+    # 增加浏览次数
+    tool.increment_views()
+    
+    try:
+        # 读取HTML文件内容
+        with open(tool.file_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+        
+        # 返回HTML内容（直接展示）
+        return content
+    
+    except Exception as e:
+        current_app.logger.error(f"加载工具失败: {str(e)}")
+        flash(f'工具加载失败: {str(e)}', 'error')
+        return redirect(url_for('student.toolbox')) 

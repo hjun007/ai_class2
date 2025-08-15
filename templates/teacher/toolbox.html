@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>工具箱 - AI课程助手系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-indigo-50 to-purple-100 min-h-screen">
+    <!-- 顶部导航栏 -->
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <h1 class="text-xl font-bold text-indigo-600">🧰 工具箱</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="/teacher/dashboard" class="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg transition duration-200">
+                        返回仪表板
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主要内容 -->
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-7xl mx-auto">
+            <!-- 页面标题 -->
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold text-gray-800 mb-2">工具箱管理</h2>
+                <p class="text-gray-600">上传和管理HTML教学工具</p>
+            </div>
+
+            <!-- 消息提示 -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="mb-6">
+                        {% for category, message in messages %}
+                            <div class="p-4 rounded-lg {% if category == 'success' %}bg-green-100 text-green-700 border border-green-200{% elif category == 'error' %}bg-red-100 text-red-700 border border-red-200{% else %}bg-blue-100 text-blue-700 border border-blue-200{% endif %}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            <!-- 主要内容区域 - 左右分栏 -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- 左侧 - 上传区域 -->
+                <div class="lg:col-span-1">
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-6 flex items-center">
+                            <span class="text-2xl mr-2">📤</span>
+                            上传工具
+                        </h3>
+
+                        <form action="/teacher/toolbox/upload" method="POST" enctype="multipart/form-data" class="space-y-6">
+                            <!-- 工具名称 -->
+                            <div>
+                                <label for="name" class="block text-sm font-medium text-gray-700 mb-2">
+                                    工具名称 <span class="text-red-500">*</span>
+                                </label>
+                                <input 
+                                    type="text" 
+                                    id="name" 
+                                    name="name" 
+                                    required
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                    placeholder="请输入工具名称"
+                                >
+                            </div>
+
+                            <!-- 工具描述 -->
+                            <div>
+                                <label for="description" class="block text-sm font-medium text-gray-700 mb-2">
+                                    工具描述
+                                </label>
+                                <textarea 
+                                    id="description" 
+                                    name="description" 
+                                    rows="3"
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                    placeholder="请输入工具描述（可选）"
+                                ></textarea>
+                            </div>
+
+                            <!-- 文件上传 -->
+                            <div>
+                                <label for="file" class="block text-sm font-medium text-gray-700 mb-2">
+                                    HTML文件 <span class="text-red-500">*</span>
+                                </label>
+                                <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-indigo-400 transition-colors duration-200">
+                                    <input 
+                                        type="file" 
+                                        id="file" 
+                                        name="file" 
+                                        accept=".html,.htm"
+                                        required
+                                        class="hidden"
+                                        onchange="handleFileSelect(this)"
+                                    >
+                                    <label for="file" class="cursor-pointer">
+                                        <div class="text-4xl text-gray-400 mb-2">📄</div>
+                                        <p class="text-gray-600 mb-1">点击选择HTML文件</p>
+                                        <p class="text-sm text-gray-500">支持 .html, .htm 格式</p>
+                                    </label>
+                                    <div id="file-info" class="hidden mt-4 p-3 bg-indigo-50 rounded-lg">
+                                        <p class="text-sm text-indigo-700" id="file-name"></p>
+                                        <p class="text-xs text-indigo-600" id="file-size"></p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 上传按钮 -->
+                            <div>
+                                <button 
+                                    type="submit" 
+                                    class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white py-3 px-6 rounded-lg font-medium transition duration-200 flex items-center justify-center space-x-2"
+                                >
+                                    <span>⬆️</span>
+                                    <span>上传工具</span>
+                                </button>
+                            </div>
+                        </form>
+
+                        <!-- 上传提示 -->
+                        <div class="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                            <h4 class="text-sm font-medium text-blue-800 mb-2">💡 上传提示</h4>
+                            <ul class="text-xs text-blue-700 space-y-1">
+                                <li>• 只支持HTML静态文件</li>
+                                <li>• 文件大小建议不超过10MB</li>
+                                <li>• 工具上传后默认为下线状态</li>
+                                <li>• 可以在右侧进行预览和管理</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 右侧 - 工具列表 -->
+                <div class="lg:col-span-2">
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-xl font-semibold text-gray-800 flex items-center">
+                                <span class="text-2xl mr-2">📋</span>
+                                工具列表
+                            </h3>
+                            <div class="flex items-center space-x-2 text-sm text-gray-600">
+                                <span>总计: {{ tools|length }} 个工具</span>
+                                <span>|</span>
+                                <span class="text-green-600">已上线: {{ tools|selectattr('status', 'equalto', 'online')|list|length }}</span>
+                            </div>
+                        </div>
+
+                        {% if tools %}
+                        <!-- 工具列表 -->
+                        <div class="space-y-4" id="tools-list">
+                            {% for tool in tools %}
+                            <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow duration-200" data-tool-id="{{ tool.id }}">
+                                <div class="flex justify-between items-start">
+                                    <!-- 工具信息 -->
+                                    <div class="flex-1">
+                                        <div class="flex items-center space-x-3 mb-2">
+                                            <h4 class="text-lg font-medium text-gray-800">{{ tool.name }}</h4>
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                                                {% if tool.status == 'online' %}bg-green-100 text-green-800{% else %}bg-gray-100 text-gray-800{% endif %}">
+                                                {% if tool.status == 'online' %}
+                                                    🟢 已上线
+                                                {% else %}
+                                                    ⚪ 已下线
+                                                {% endif %}
+                                            </span>
+                                        </div>
+                                        
+                                        {% if tool.description %}
+                                        <p class="text-gray-600 text-sm mb-2">{{ tool.description }}</p>
+                                        {% endif %}
+                                        
+                                        <div class="flex items-center space-x-4 text-xs text-gray-500">
+                                            <span>📄 {{ tool.file_name }}</span>
+                                            <span>📏 {{ tool.get_file_size_formatted() }}</span>
+                                            <span>👁️ {{ tool.views }} 次浏览</span>
+                                            <span>📅 {{ tool.upload_time.strftime('%m-%d %H:%M') }}</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- 操作按钮 -->
+                                    <div class="flex items-center space-x-2 ml-4">
+                                        <!-- 预览按钮 -->
+                                        <button 
+                                            onclick="previewTool({{ tool.id }})"
+                                            class="px-3 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 text-sm rounded-lg transition duration-200"
+                                            title="预览工具"
+                                        >
+                                            👁️ 预览
+                                        </button>
+
+                                        <!-- 状态切换按钮 -->
+                                        <button 
+                                            onclick="toggleStatus({{ tool.id }}, '{{ tool.status }}')"
+                                            class="px-3 py-1 text-sm rounded-lg transition duration-200 status-btn-{{ tool.id }}
+                                                {% if tool.status == 'online' %}bg-orange-100 hover:bg-orange-200 text-orange-700{% else %}bg-green-100 hover:bg-green-200 text-green-700{% endif %}"
+                                            title="{% if tool.status == 'online' %}下线工具{% else %}上线工具{% endif %}"
+                                        >
+                                            {% if tool.status == 'online' %}
+                                                📴 下线
+                                            {% else %}
+                                                📶 上线
+                                            {% endif %}
+                                        </button>
+
+                                        <!-- 删除按钮 -->
+                                        <button 
+                                            onclick="deleteTool({{ tool.id }}, '{{ tool.name }}')"
+                                            class="px-3 py-1 bg-red-100 hover:bg-red-200 text-red-700 text-sm rounded-lg transition duration-200"
+                                            title="删除工具"
+                                        >
+                                            🗑️ 删除
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <!-- 空状态 -->
+                        <div class="text-center py-16">
+                            <div class="text-6xl text-gray-400 mb-4">🧰</div>
+                            <h3 class="text-xl font-medium text-gray-600 mb-2">还没有上传任何工具</h3>
+                            <p class="text-gray-500 mb-6">在左侧上传您的第一个HTML工具吧</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 预览模态框 -->
+    <div id="preview-modal" class="fixed inset-0 z-50 hidden">
+        <div class="flex items-center justify-center min-h-screen px-4">
+            <!-- 背景遮罩 -->
+            <div class="fixed inset-0 bg-black bg-opacity-50" onclick="closePreview()"></div>
+            
+            <!-- 模态框内容 -->
+            <div class="relative bg-white rounded-xl shadow-xl max-w-6xl w-full max-h-screen overflow-hidden">
+                <!-- 模态框头部 -->
+                <div class="flex justify-between items-center p-4 border-b">
+                    <h3 class="text-lg font-semibold text-gray-800">工具预览</h3>
+                    <button 
+                        onclick="closePreview()" 
+                        class="text-gray-400 hover:text-gray-600 text-2xl"
+                    >
+                        ×
+                    </button>
+                </div>
+                
+                <!-- 预览内容 -->
+                <div class="p-4 overflow-auto" style="max-height: calc(100vh - 120px);">
+                    <iframe 
+                        id="preview-frame" 
+                        class="w-full border rounded-lg"
+                        style="height: 70vh;"
+                        frameborder="0">
+                    </iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 文件选择处理
+        function handleFileSelect(input) {
+            const file = input.files[0];
+            const fileInfo = document.getElementById('file-info');
+            const fileName = document.getElementById('file-name');
+            const fileSize = document.getElementById('file-size');
+            
+            if (file) {
+                fileName.textContent = `文件名: ${file.name}`;
+                fileSize.textContent = `大小: ${formatFileSize(file.size)}`;
+                fileInfo.classList.remove('hidden');
+            } else {
+                fileInfo.classList.add('hidden');
+            }
+        }
+
+        // 格式化文件大小
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 B';
+            
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+        }
+
+        // 预览工具
+        function previewTool(toolId) {
+            const modal = document.getElementById('preview-modal');
+            const frame = document.getElementById('preview-frame');
+            
+            frame.src = `/teacher/toolbox/tool/${toolId}/preview`;
+            modal.classList.remove('hidden');
+        }
+
+        // 关闭预览
+        function closePreview() {
+            const modal = document.getElementById('preview-modal');
+            const frame = document.getElementById('preview-frame');
+            
+            modal.classList.add('hidden');
+            frame.src = '';
+        }
+
+        // 切换工具状态
+        async function toggleStatus(toolId, currentStatus) {
+            try {
+                const response = await fetch(`/teacher/toolbox/tool/${toolId}/toggle_status`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // 更新按钮状态
+                    const btn = document.querySelector(`.status-btn-${toolId}`);
+                    const toolCard = document.querySelector(`[data-tool-id="${toolId}"]`);
+                    const statusBadge = toolCard.querySelector('.inline-flex');
+                    
+                    if (data.new_status === 'online') {
+                        btn.className = 'px-3 py-1 text-sm rounded-lg transition duration-200 status-btn-' + toolId + ' bg-orange-100 hover:bg-orange-200 text-orange-700';
+                        btn.innerHTML = '📴 下线';
+                        btn.title = '下线工具';
+                        statusBadge.className = 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800';
+                        statusBadge.innerHTML = '🟢 已上线';
+                    } else {
+                        btn.className = 'px-3 py-1 text-sm rounded-lg transition duration-200 status-btn-' + toolId + ' bg-green-100 hover:bg-green-200 text-green-700';
+                        btn.innerHTML = '📶 上线';
+                        btn.title = '上线工具';
+                        statusBadge.className = 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800';
+                        statusBadge.innerHTML = '⚪ 已下线';
+                    }
+                    
+                    // 显示成功消息
+                    showMessage(data.message, 'success');
+                } else {
+                    showMessage(data.error || '操作失败', 'error');
+                }
+            } catch (error) {
+                showMessage('网络错误: ' + error.message, 'error');
+            }
+        }
+
+        // 删除工具
+        async function deleteTool(toolId, toolName) {
+            if (!confirm(`确定要删除工具 "${toolName}" 吗？此操作不可恢复！`)) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/teacher/toolbox/tool/${toolId}/delete`, {
+                    method: 'POST'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // 移除工具卡片
+                    const toolCard = document.querySelector(`[data-tool-id="${toolId}"]`);
+                    toolCard.remove();
+                    
+                    // 检查是否还有工具
+                    const toolsList = document.getElementById('tools-list');
+                    if (toolsList.children.length === 0) {
+                        location.reload(); // 重新加载页面显示空状态
+                    }
+                    
+                    showMessage(data.message, 'success');
+                } else {
+                    showMessage(data.error || '删除失败', 'error');
+                }
+            } catch (error) {
+                showMessage('网络错误: ' + error.message, 'error');
+            }
+        }
+
+        // 显示消息
+        function showMessage(message, type) {
+            // 创建消息元素
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg transition-all duration-300 ${
+                type === 'success' ? 'bg-green-100 text-green-700 border border-green-200' : 'bg-red-100 text-red-700 border border-red-200'
+            }`;
+            messageDiv.textContent = message;
+            
+            document.body.appendChild(messageDiv);
+            
+            // 3秒后自动移除
+            setTimeout(() => {
+                messageDiv.remove();
+            }, 3000);
+        }
+
+        // ESC键关闭预览
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closePreview();
+            }
+        });
+    </script>
+</body>
+</html> 

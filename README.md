@@ -21,10 +21,11 @@ ai_class2/
 
 ## 快速开始
 
-### 0. 创建虚拟环境
+### 0. 创建虚拟环境并激活
 
 ```bash
 python -m venv venv
+source venv/bin/activate
 ```
 ### 1. 安装依赖
 

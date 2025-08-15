@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html><head><title>学生测试工具</title></head>
+<body>
+<h1>🧮 简单计算器</h1>
+<input type="number" id="num1" placeholder="数字1">
+<input type="number" id="num2" placeholder="数字2">
+<button onclick="calculate()">相加</button>
+<div id="result"></div>
+<script>
+function calculate() {
+    const num1 = parseFloat(document.getElementById('num1').value) || 0;
+    const num2 = parseFloat(document.getElementById('num2').value) || 0;
+    document.getElementById('result').innerHTML = '结果: ' + (num1 + num2);
+}
+</script>
+</body></html>

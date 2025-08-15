@@ -4,6 +4,7 @@ from models.paper_quiz import PaperQuiz
 from models.quiz import Quiz
 from models.answer import Answer
 from models.exam_record import ExamRecord
+from models.tool import Tool
 from models import db
 import os
 from openai import OpenAI
@@ -12,9 +13,24 @@ import logging
 from config import Config
 from collections import defaultdict
 from datetime import datetime, timedelta
+from werkzeug.utils import secure_filename
+import uuid
 
 # 创建老师蓝图
 teacher_bp = Blueprint('teacher', __name__, url_prefix='/teacher')
+
+# 配置文件上传
+UPLOAD_FOLDER = 'static/tools'
+ALLOWED_EXTENSIONS = {'html', 'htm'}
+
+def allowed_file(filename):
+    """检查文件扩展名是否允许"""
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def ensure_upload_folder():
+    """确保上传目录存在"""
+    if not os.path.exists(UPLOAD_FOLDER):
+        os.makedirs(UPLOAD_FOLDER)
 
 # 配置OpenAI API
 # openai.api_key = os.environ.get('OPENAI_API_KEY')
@@ -602,4 +618,155 @@ def generate_mock_analysis(student_id, exam_records):
 - 及时反馈和鼓励，保持学习积极性
 - 个性化辅导，针对薄弱环节加强指导
 
-*注：当前为演示模式，配置DEEPSEEK_API_KEY后可获得更详细的AI分析报告。*""" 
+*注：当前为演示模式，配置DEEPSEEK_API_KEY后可获得更详细的AI分析报告。*"""
+
+@teacher_bp.route('/toolbox')
+def toolbox():
+    """工具箱页面"""
+    tools = Tool.get_all_tools()
+    return render_template('teacher/toolbox.html', tools=tools)
+
+@teacher_bp.route('/toolbox/upload', methods=['POST'])
+def upload_tool():
+    """上传工具文件"""
+    try:
+        # 检查文件是否存在
+        if 'file' not in request.files:
+            flash('请选择要上传的文件！', 'error')
+            return redirect(url_for('teacher.toolbox'))
+        
+        file = request.files['file']
+        name = request.form.get('name', '').strip()
+        description = request.form.get('description', '').strip()
+        
+        # 检查必填项
+        if not name:
+            flash('请填写工具名称！', 'error')
+            return redirect(url_for('teacher.toolbox'))
+        
+        if file.filename == '':
+            flash('请选择要上传的文件！', 'error')
+            return redirect(url_for('teacher.toolbox'))
+        
+        # 检查文件类型
+        if not allowed_file(file.filename):
+            flash('只允许上传HTML文件（.html, .htm）！', 'error')
+            return redirect(url_for('teacher.toolbox'))
+        
+        # 确保上传目录存在
+        ensure_upload_folder()
+        
+        # 生成唯一文件名
+        original_filename = secure_filename(file.filename)
+        file_extension = original_filename.rsplit('.', 1)[1].lower()
+        unique_filename = f"{uuid.uuid4()}.{file_extension}"
+        file_path = os.path.join(UPLOAD_FOLDER, unique_filename)
+        
+        # 保存文件
+        file.save(file_path)
+        
+        # 获取文件大小
+        file_size = os.path.getsize(file_path)
+        
+        # 保存到数据库
+        tool = Tool.add_tool(
+            name=name,
+            description=description,
+            file_path=file_path,
+            file_name=original_filename,
+            file_size=file_size,
+            creator='teacher'  # 可以从session获取实际的老师ID
+        )
+        
+        flash(f'工具 "{name}" 上传成功！', 'success')
+        return redirect(url_for('teacher.toolbox'))
+        
+    except Exception as e:
+        current_app.logger.error(f"文件上传失败: {str(e)}")
+        flash(f'文件上传失败: {str(e)}', 'error')
+        return redirect(url_for('teacher.toolbox'))
+
+@teacher_bp.route('/toolbox/tool/<int:tool_id>/preview')
+def preview_tool(tool_id):
+    """预览工具"""
+    tool = Tool.get_tool_by_id(tool_id)
+    if not tool:
+        flash('工具不存在！', 'error')
+        return redirect(url_for('teacher.toolbox'))
+    
+    # 增加浏览次数
+    tool.increment_views()
+    
+    try:
+        # 读取HTML文件内容
+        with open(tool.file_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+        
+        # 返回HTML内容（直接展示）
+        return content
+    
+    except Exception as e:
+        current_app.logger.error(f"预览工具失败: {str(e)}")
+        flash(f'预览工具失败: {str(e)}', 'error')
+        return redirect(url_for('teacher.toolbox'))
+
+@teacher_bp.route('/toolbox/tool/<int:tool_id>/toggle_status', methods=['POST'])
+def toggle_tool_status(tool_id):
+    """切换工具状态（上线/下线）"""
+    tool = Tool.get_tool_by_id(tool_id)
+    if not tool:
+        return jsonify({'success': False, 'error': '工具不存在'})
+    
+    try:
+        # 切换状态
+        new_status = 'offline' if tool.status == 'online' else 'online'
+        success = tool.update_status(new_status)
+        
+        if success:
+            status_text = '上线' if new_status == 'online' else '下线'
+            return jsonify({
+                'success': True,
+                'message': f'工具已{status_text}',
+                'new_status': new_status,
+                'status_text': status_text
+            })
+        else:
+            return jsonify({'success': False, 'error': '状态更新失败'})
+    
+    except Exception as e:
+        current_app.logger.error(f"切换工具状态失败: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)})
+
+@teacher_bp.route('/toolbox/tool/<int:tool_id>/delete', methods=['POST'])
+def delete_tool(tool_id):
+    """删除工具"""
+    tool = Tool.get_tool_by_id(tool_id)
+    if not tool:
+        return jsonify({'success': False, 'error': '工具不存在'})
+    
+    try:
+        # 删除文件
+        if os.path.exists(tool.file_path):
+            os.remove(tool.file_path)
+        
+        # 删除数据库记录
+        success = tool.delete_tool()
+        
+        if success:
+            return jsonify({'success': True, 'message': '工具删除成功'})
+        else:
+            return jsonify({'success': False, 'error': '删除失败'})
+    
+    except Exception as e:
+        current_app.logger.error(f"删除工具失败: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)})
+
+@teacher_bp.route('/api/tools')
+def api_get_tools():
+    """获取工具列表API"""
+    try:
+        tools = Tool.get_all_tools()
+        tools_data = [tool.to_dict() for tool in tools]
+        return jsonify({'success': True, 'tools': tools_data})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}) 

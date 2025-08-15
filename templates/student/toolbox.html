@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>学习工具箱 - AI课程助手系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-purple-100 min-h-screen">
+    <!-- 顶部导航栏 -->
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <h1 class="text-xl font-bold text-blue-600">🧰 学习工具箱</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="text-gray-600">{{ session.student_id or '学生' }}</span>
+                    <a href="/student/dashboard" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition duration-200">
+                        返回仪表板
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主要内容 -->
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-6xl mx-auto">
+            
+            {% if tools %}
+            <!-- 工具统计 -->
+            <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-blue-600 mb-1">{{ tools|length }}</div>
+                        <div class="text-gray-600">可用工具</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-green-600 mb-1">{{ tools|sum(attribute='views') }}</div>
+                        <div class="text-gray-600">总使用次数</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-purple-600 mb-1">5</div>
+                        <div class="text-gray-600">已上线工具</div>
+                    </div>
+                </div>
+            </div> 
+
+            <!-- 工具列表 -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for tool in tools %}
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2">
+                    <!-- 工具头部 -->
+                    <div class="bg-gradient-to-r from-blue-500 to-purple-600 p-4">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-lg font-semibold text-white">{{ tool.name }}</h3>
+                            <div class="bg-white bg-opacity-20 rounded-full p-2">
+                                <span class="text-2xl">🛠️</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 工具内容 -->
+                    <div class="p-6">
+                        {% if tool.description %}
+                        <p class="text-gray-600 text-sm mb-4 line-clamp-3">{{ tool.description }}</p>
+                        {% else %}
+                        <p class="text-gray-500 text-sm mb-4 italic">暂无描述</p>
+                        {% endif %}
+
+                        <!-- 工具信息 -->
+                        <div class="flex items-center justify-between text-xs text-gray-500 mb-4">
+                            <div class="flex items-center space-x-4">
+                                <span>👁️ {{ tool.views }} 次使用</span>
+                                <span>📅 {{ tool.upload_time.strftime('%m-%d') }}</span>
+                            </div>
+                            <span class="inline-flex items-center px-2 py-1 rounded-full bg-green-100 text-green-800">
+                                ✅ 可用
+                            </span>
+                        </div>
+
+                        <!-- 使用按钮 -->
+                        <a 
+                            href="/student/toolbox/tool/{{ tool.id }}" 
+                            target="_blank"
+                            class="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-3 px-4 rounded-lg font-medium transition duration-200 flex items-center justify-center space-x-2 group"
+                        >
+                            <span>🚀</span>
+                            <span>立即使用</span>
+                            <span class="group-hover:translate-x-1 transition-transform duration-200">→</span>
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- 使用提示 -->
+            <div class="mt-8 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 border border-blue-200">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                    <span class="text-2xl mr-2">💡</span>
+                    使用提示
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-700">
+                    <div class="flex items-start space-x-2">
+                        <span class="text-blue-500 mt-1">•</span>
+                        <span>点击"立即使用"会在新窗口打开工具</span>
+                    </div>
+                    <div class="flex items-start space-x-2">
+                        <span class="text-blue-500 mt-1">•</span>
+                        <span>所有工具都支持键盘操作</span>
+                    </div>
+                    <div class="flex items-start space-x-2">
+                        <span class="text-blue-500 mt-1">•</span>
+                        <span>工具数据不会保存，请及时记录结果</span>
+                    </div>
+                    <div class="flex items-start space-x-2">
+                        <span class="text-blue-500 mt-1">•</span>
+                        <span>遇到问题可以刷新页面重新开始</span>
+                    </div>
+                </div>
+            </div>
+
+            {% else %}
+            <!-- 空状态 -->
+            <div class="text-center py-16 bg-white rounded-xl shadow-lg">
+                <div class="w-32 h-32 mx-auto mb-8 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center">
+                    <span class="text-5xl text-gray-400">🧰</span>
+                </div>
+                <h2 class="text-2xl font-semibold text-gray-600 mb-4">暂无可用工具</h2>
+                <p class="text-gray-500 mb-8">老师还没有上线任何学习工具</p>
+                <div class="flex justify-center space-x-4">
+                    <a href="/student/dashboard" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-medium transition duration-200">
+                        返回仪表板
+                    </a>
+                    <button 
+                        onclick="location.reload()" 
+                        class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-medium transition duration-200"
+                    >
+                        刷新页面
+                    </button>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- 分类过滤器（未来扩展） -->
+            {% if tools and tools|length > 6 %}
+            <div class="mt-8 bg-white rounded-xl shadow-lg p-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">工具分类</h3>
+                <div class="flex flex-wrap gap-2">
+                    <button class="px-4 py-2 bg-blue-100 text-blue-700 rounded-full text-sm hover:bg-blue-200 transition duration-200 filter-btn active" data-category="all">
+                        全部 ({{ tools|length }})
+                    </button>
+                    <button class="px-4 py-2 bg-gray-100 text-gray-700 rounded-full text-sm hover:bg-gray-200 transition duration-200 filter-btn" data-category="math">
+                        数学工具
+                    </button>
+                    <button class="px-4 py-2 bg-gray-100 text-gray-700 rounded-full text-sm hover:bg-gray-200 transition duration-200 filter-btn" data-category="language">
+                        语言工具
+                    </button>
+                    <button class="px-4 py-2 bg-gray-100 text-gray-700 rounded-full text-sm hover:bg-gray-200 transition duration-200 filter-btn" data-category="science">
+                        科学工具
+                    </button>
+                    <button class="px-4 py-2 bg-gray-100 text-gray-700 rounded-full text-sm hover:bg-gray-200 transition duration-200 filter-btn" data-category="other">
+                        其他工具
+                    </button>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        // 工具分类过滤（未来扩展功能）
+        document.addEventListener('DOMContentLoaded', function() {
+            const filterBtns = document.querySelectorAll('.filter-btn');
+            const toolCards = document.querySelectorAll('[data-category]');
+            
+            filterBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const category = this.dataset.category;
+                    
+                    // 更新按钮状态
+                    filterBtns.forEach(b => {
+                        b.classList.remove('active', 'bg-blue-100', 'text-blue-700');
+                        b.classList.add('bg-gray-100', 'text-gray-700');
+                    });
+                    
+                    this.classList.add('active', 'bg-blue-100', 'text-blue-700');
+                    this.classList.remove('bg-gray-100', 'text-gray-700');
+                    
+                    // 过滤工具卡片（基础实现）
+                    if (category === 'all') {
+                        // 显示所有工具
+                        console.log('显示所有工具');
+                    } else {
+                        // 按分类显示工具（需要后端支持）
+                        console.log('显示分类:', category);
+                    }
+                });
+            });
+        });
+
+        // 工具使用统计（点击时记录）
+        function trackToolUsage(toolId, toolName) {
+            // 可以发送统计数据到后端
+            console.log(`使用工具: ${toolName} (ID: ${toolId})`);
+            
+            // 可以添加用户行为追踪
+            if (typeof gtag !== 'undefined') {
+                gtag('event', 'tool_usage', {
+                    'tool_id': toolId,
+                    'tool_name': toolName
+                });
+            }
+        }
+
+        // 为所有工具使用按钮添加统计
+        document.querySelectorAll('a[href*="/toolbox/tool/"]').forEach(link => {
+            link.addEventListener('click', function() {
+                const toolId = this.href.split('/').pop();
+                const toolName = this.closest('.bg-white').querySelector('h3').textContent;
+                trackToolUsage(toolId, toolName);
+            });
+        });
+    </script>
+</body>
+</html> 
