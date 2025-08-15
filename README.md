@@ -24,8 +24,9 @@ ai_class2/
 ### 0. 创建虚拟环境并激活
 
 ```bash
-python -m venv venv
-source venv/bin/activate
+#进入项目根目录
+python -m venv venv         
+source venv/bin/activate    （windows目录为venv/Scripts/activate）
 ```
 ### 1. 安装依赖
 
