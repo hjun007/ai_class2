@@ -55,12 +55,12 @@
     <div class="container mx-auto px-4 py-4">
         <div class="max-w-6xl mx-auto">
             <!-- 页面标题和操作 -->
-            <div class="flex justify-between items-center mb-4">
+            <!-- <div class="flex justify-between items-center mb-4">
                 <h1 class="text-2xl font-bold text-purple-600">🤖 AI智能体助手</h1>
                 <button onclick="clearChat()" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition duration-200">
                     清空对话
                 </button>
-            </div>
+            </div> -->
             
             <!-- 主要内容区域 -->
             <div class="flex gap-4">
@@ -70,21 +70,8 @@
                     
                     <!-- 角色列表 -->
                     <div class="space-y-3">
-                        <!-- 通用助手 -->
-                        <div class="role-item p-4 rounded-lg border-2 border-purple-500 bg-purple-100 shadow-lg cursor-pointer transition-all duration-200 transform scale-105" onclick="switchRole('general')" data-role="general">
-                            <div class="flex items-center space-x-3">
-                                <div class="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center">
-                                    <span class="text-white text-lg">🤖</span>
-                                </div>
-                                <div>
-                                    <h4 class="font-semibold text-gray-800">通用学习助手</h4>
-                                    <p class="text-sm text-gray-600">帮助解答各种学习问题</p>
-                                </div>
-                            </div>
-                        </div>
-
                         <!-- 编程助手 -->
-                        <div class="role-item p-4 rounded-lg border-2 border-gray-200 hover:border-blue-300 hover:bg-blue-50 cursor-pointer transition-all duration-200" onclick="switchRole('programming')" data-role="programming">
+                        <div class="role-item p-4 rounded-lg border-2 border-blue-500 bg-blue-100 shadow-lg cursor-pointer transition-all duration-200 transform scale-105" onclick="switchRole('programming')" data-role="programming">
                             <div class="flex items-center space-x-3">
                                 <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
                                     <span class="text-white text-lg">💻</span>
@@ -109,54 +96,15 @@
                             </div>
                         </div>
 
-                        <!-- 化学实验助手 -->
-                        <div class="role-item p-4 rounded-lg border-2 border-gray-200 hover:border-green-300 hover:bg-green-50 cursor-pointer transition-all duration-200" onclick="switchRole('chemistry')" data-role="chemistry">
+                        <!-- 算法助手 -->
+                        <div class="role-item p-4 rounded-lg border-2 border-gray-200 hover:border-purple-300 hover:bg-purple-50 cursor-pointer transition-all duration-200" onclick="switchRole('algorithm')" data-role="algorithm">
                             <div class="flex items-center space-x-3">
-                                <div class="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
-                                    <span class="text-white text-lg">🧪</span>
+                                <div class="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center">
+                                    <span class="text-white text-lg">🧠</span>
                                 </div>
                                 <div>
-                                    <h4 class="font-semibold text-gray-800">化学实验助手</h4>
-                                    <p class="text-sm text-gray-600">化学知识和实验指导</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 英语口语练习助手 -->
-                        <div class="role-item p-4 rounded-lg border-2 border-gray-200 hover:border-yellow-300 hover:bg-yellow-50 cursor-pointer transition-all duration-200" onclick="switchRole('english')" data-role="english">
-                            <div class="flex items-center space-x-3">
-                                <div class="w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center">
-                                    <span class="text-white text-lg">🗣️</span>
-                                </div>
-                                <div>
-                                    <h4 class="font-semibold text-gray-800">英语口语助手</h4>
-                                    <p class="text-sm text-gray-600">英语学习和口语练习</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 数学解题助手 -->
-                        <div class="role-item p-4 rounded-lg border-2 border-gray-200 hover:border-indigo-300 hover:bg-indigo-50 cursor-pointer transition-all duration-200" onclick="switchRole('math')" data-role="math">
-                            <div class="flex items-center space-x-3">
-                                <div class="w-10 h-10 bg-indigo-500 rounded-full flex items-center justify-center">
-                                    <span class="text-white text-lg">📐</span>
-                                </div>
-                                <div>
-                                    <h4 class="font-semibold text-gray-800">数学解题助手</h4>
-                                    <p class="text-sm text-gray-600">数学问题解析和解题思路</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 物理实验助手 -->
-                        <div class="role-item p-4 rounded-lg border-2 border-gray-200 hover:border-orange-300 hover:bg-orange-50 cursor-pointer transition-all duration-200" onclick="switchRole('physics')" data-role="physics">
-                            <div class="flex items-center space-x-3">
-                                <div class="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center">
-                                    <span class="text-white text-lg">⚡</span>
-                                </div>
-                                <div>
-                                    <h4 class="font-semibold text-gray-800">物理实验助手</h4>
-                                    <p class="text-sm text-gray-600">物理概念和实验指导</p>
+                                    <h4 class="font-semibold text-gray-800">算法助手</h4>
+                                    <p class="text-sm text-gray-600">算法原理和数据结构解析</p>
                                 </div>
                             </div>
                         </div>
@@ -171,11 +119,11 @@
                 <div class="chat-messages overflow-y-auto p-6 space-y-4" id="chatMessages">
                     <!-- 欢迎消息 -->
                     <div class="flex items-start space-x-3 message">
-                        <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
-                            <span class="text-white text-lg">🤖</span>
+                        <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
+                            <span class="text-white text-lg">💻</span>
                         </div>
-                        <div class="bg-purple-50 rounded-lg p-4 max-w-md">
-                            <p class="text-gray-800">你好！我是AI智能体助手，可以帮你解答学习问题、提供课程辅导。有什么我可以帮助你的吗？</p>
+                        <div class="bg-blue-50 rounded-lg p-4 max-w-md">
+                            <p class="text-gray-800">你好！我是编程助手，专门帮助你学习编程知识和解决代码问题。让我们开始编程之旅吧！</p>
                         </div>
                     </div>
                 </div>
@@ -183,14 +131,14 @@
                 <!-- 正在输入指示器 -->
                 <div class="typing-indicator px-6 mb-4" id="typingIndicator">
                     <div class="flex items-start space-x-3">
-                        <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
-                            <span class="text-white text-lg">🤖</span>
+                        <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
+                            <span class="text-white text-lg">💻</span>
                         </div>
-                        <div class="bg-purple-50 rounded-lg p-4">
+                        <div class="bg-blue-50 rounded-lg p-4">
                             <div class="flex space-x-1">
-                                <div class="w-2 h-2 bg-purple-500 rounded-full typing-dot"></div>
-                                <div class="w-2 h-2 bg-purple-500 rounded-full typing-dot"></div>
-                                <div class="w-2 h-2 bg-purple-500 rounded-full typing-dot"></div>
+                                <div class="w-2 h-2 bg-blue-500 rounded-full typing-dot"></div>
+                                <div class="w-2 h-2 bg-blue-500 rounded-full typing-dot"></div>
+                                <div class="w-2 h-2 bg-blue-500 rounded-full typing-dot"></div>
                             </div>
                         </div>
                     </div>
@@ -225,16 +173,10 @@
 
     <script>
         let conversationHistory = [];
-        let currentAiRole = 'general';
+        let currentAiRole = 'programming';
 
         // AI角色配置
         const aiRoles = {
-            general: {
-                name: '通用学习助手',
-                icon: '🤖',
-                color: 'purple',
-                greeting: '你好！我是通用学习助手，可以帮你解答各种学习问题。有什么我可以帮助你的吗？'
-            },
             programming: {
                 name: '编程助手',
                 icon: '💻',
@@ -247,29 +189,11 @@
                 color: 'red',
                 greeting: '你好！我是信息安全助手，可以教你网络安全知识和防护技能。安全上网，从我开始！'
             },
-            chemistry: {
-                name: '化学实验助手',
-                icon: '🧪',
-                color: 'green',
-                greeting: '你好！我是化学实验助手，可以帮你理解化学概念和指导实验操作。让我们探索化学的奥秘吧！'
-            },
-            english: {
-                name: '英语口语助手',
-                icon: '🗣️',
-                color: 'yellow',
-                greeting: 'Hello! 我是英语口语助手，可以帮你练习英语对话和提高口语能力。Let\'s practice English together!'
-            },
-            math: {
-                name: '数学解题助手',
-                icon: '📐',
-                color: 'indigo',
-                greeting: '你好！我是数学解题助手，可以帮你解析数学问题和理清解题思路。让我们一起攻克数学难题！'
-            },
-            physics: {
-                name: '物理实验助手',
-                icon: '⚡',
-                color: 'orange',
-                greeting: '你好！我是物理实验助手，可以帮你理解物理概念和指导实验操作。让我们探索物理世界的规律！'
+            algorithm: {
+                name: '算法助手',
+                icon: '🧠',
+                color: 'purple',
+                greeting: '你好！我是算法助手，可以帮你理解算法原理和数据结构。让我们一起探索编程的奥秘！'
             }
         };
 
