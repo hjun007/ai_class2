@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>学伴AI:个性化智学平台</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #e3f2fd 0%, #f3f9ff 50%, #e8f4fd 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 80px;
+            z-index: 10;
+            position: relative;
+        }
+        
+        .title {
+            font-size: 3.5rem;
+            color: #1565c0;
+            margin-top: 90px;
+            margin-bottom: 15px;
+            text-shadow: 0 0 20px rgba(33, 150, 243, 0.3);
+            font-weight: 300;
+            letter-spacing: 2px;
+            position: relative;
+            display: inline-block;
+        }
+        
+        .title::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            right: -10px;
+            bottom: -10px;
+            background: linear-gradient(45deg, transparent, rgba(33, 150, 243, 0.1), transparent);
+            border-radius: 50%;
+            animation: pulse 3s ease-in-out infinite;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            color: #42a5f5;
+            margin-bottom: 10px;
+            font-weight: 300;
+            letter-spacing: 1px;
+            opacity: 0.9;
+        }
+        
+        .main-content {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            height: 600px;
+            z-index: 10;
+        }
+        
+        .space-button {
+            position: absolute;
+            text-decoration: none;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 20;
+        }
+        
+        .student-button {
+            top: 120px;
+            left: 100px;
+            width: 180px;
+            height: 180px;
+        }
+        
+        .teacher-button {
+            bottom: 150px;
+            right: 120px;
+            width: 160px;
+            height: 160px;
+        }
+        
+
+        
+        .button-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        .student-container {
+            background: linear-gradient(135deg, rgba(144, 202, 249, 0.8) 0%, rgba(66, 165, 245, 0.8) 100%);
+            transform: rotate(-5deg);
+        }
+        
+        .teacher-container {
+            background: linear-gradient(135deg, rgba(129, 199, 132, 0.8) 0%, rgba(102, 187, 106, 0.8) 100%);
+            transform: rotate(3deg);
+        }
+        
+
+        
+        .button-container::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transform: rotate(45deg);
+            animation: shimmer 3s ease-in-out infinite;
+        }
+        
+        .button-content {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .button-icon {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+            animation: float-icon 2s ease-in-out infinite;
+        }
+        
+        .student-icon {
+            color: #0d47a1;
+        }
+        
+        .teacher-icon {
+            color: #1b5e20;
+        }
+        
+        .button-title {
+            font-size: 1.3rem;
+            font-weight: 500;
+            margin-bottom: 5px;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+        
+        .student-title {
+            color: #01579b;
+        }
+        
+        .teacher-title {
+            color: #1b5e20;
+        }
+        
+        .button-subtitle {
+            font-size: 0.85rem;
+            opacity: 0.8;
+            font-weight: 300;
+        }
+        
+        .student-subtitle {
+            color: #0277bd;
+        }
+        
+        .teacher-subtitle {
+            color: #2e7d32;
+        }
+        
+
+        
+        .space-button:hover .button-container {
+            transform: scale(1.05) rotate(0deg);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+        
+        .space-button:hover .button-icon {
+            animation: bounce 0.6s ease-in-out infinite;
+        }
+        
+        .tech-circles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: 1;
+        }
+        
+        .ai-robot {
+            position: absolute;
+            width: 50px;
+            height: 70px;
+            top: 15%;
+            left: 8%;
+            opacity: 0.25;
+            animation: float-robot 8s ease-in-out infinite;
+            filter: drop-shadow(0 0 8px rgba(33, 150, 243, 0.3));
+        }
+        
+        .ai-robot::before {
+            content: '';
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: linear-gradient(135deg, #1976d2, #42a5f5);
+            border-radius: 50%;
+            top: 0;
+            left: 10px;
+            box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.2);
+        }
+        
+        .ai-robot::after {
+            content: '';
+            position: absolute;
+            width: 45px;
+            height: 40px;
+            background: linear-gradient(135deg, #1976d2, #42a5f5);
+            border-radius: 5px;
+            top: 28px;
+            left: 2.5px;
+            box-shadow: inset 0 0 8px rgba(255, 255, 255, 0.15);
+        }
+        
+        .ai-robot-2 {
+            position: absolute;
+            width: 45px;
+            height: 60px;
+            bottom: 20%;
+            right: 10%;
+            opacity: 0.2;
+            animation: float-robot 10s ease-in-out infinite reverse;
+            filter: drop-shadow(0 0 6px rgba(76, 175, 80, 0.3));
+        }
+        
+        .ai-robot-2::before {
+            content: '';
+            position: absolute;
+            width: 25px;
+            height: 25px;
+            background: linear-gradient(135deg, #388e3c, #66bb6a);
+            border-radius: 50%;
+            top: 0;
+            left: 10px;
+            box-shadow: inset 0 0 8px rgba(255, 255, 255, 0.2);
+        }
+        
+        .ai-robot-2::after {
+            content: '';
+            position: absolute;
+            width: 35px;
+            height: 30px;
+            background: linear-gradient(135deg, #388e3c, #66bb6a);
+            border-radius: 4px;
+            top: 25px;
+            left: 5px;
+            box-shadow: inset 0 0 6px rgba(255, 255, 255, 0.15);
+        }
+        
+        .ai-circuit {
+            position: absolute;
+            width: 200px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #64b5f6, transparent);
+            top: 30%;
+            right: 5%;
+            opacity: 0.6;
+            animation: pulse-circuit 4s ease-in-out infinite;
+            box-shadow: 0 0 5px rgba(100, 181, 246, 0.5);
+        }
+        
+        .ai-circuit::before {
+            content: '';
+            position: absolute;
+            width: 2px;
+            height: 30px;
+            background: #64b5f6;
+            top: -15px;
+            left: 50px;
+            box-shadow: 0 0 3px rgba(100, 181, 246, 0.7);
+        }
+        
+        .ai-circuit::after {
+            content: '';
+            position: absolute;
+            width: 2px;
+            height: 20px;
+            background: #64b5f6;
+            top: -10px;
+            left: 120px;
+            box-shadow: 0 0 3px rgba(100, 181, 246, 0.7);
+        }
+        
+        .ai-particles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: 1;
+        }
+        
+        .ai-particle {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: #42a5f5;
+            border-radius: 50%;
+            animation: float-particle 6s linear infinite;
+        }
+        
+        .particle-1 { top: 10%; left: 20%; animation-delay: 0s; }
+        .particle-2 { top: 25%; right: 15%; animation-delay: 1s; }
+        .particle-3 { bottom: 30%; left: 25%; animation-delay: 2s; }
+        .particle-4 { bottom: 15%; right: 30%; animation-delay: 3s; }
+        .particle-5 { top: 50%; left: 10%; animation-delay: 4s; }
+        .particle-6 { top: 60%; right: 20%; animation-delay: 5s; }
+        
+        .data-stream {
+            position: absolute;
+            width: 150px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #81c784, transparent);
+            top: 70%;
+            left: 10%;
+            opacity: 0.5;
+            animation: data-flow 3s linear infinite;
+        }
+        
+        .data-stream::before {
+            content: '';
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #81c784;
+            border-radius: 50%;
+            top: -1.5px;
+            left: 0;
+            animation: data-pulse 3s linear infinite;
+        }
+        
+        @keyframes float-robot {
+            0%, 100% { transform: translateY(0px) rotate(0deg) scale(1); }
+            25% { transform: translateY(-8px) rotate(2deg) scale(1.02); }
+            50% { transform: translateY(-20px) rotate(5deg) scale(1.05); }
+            75% { transform: translateY(-8px) rotate(2deg) scale(1.02); }
+        }
+        
+        @keyframes pulse-circuit {
+            0%, 100% { opacity: 0.4; transform: scaleX(1); }
+            25% { opacity: 0.7; transform: scaleX(1.1); }
+            50% { opacity: 0.9; transform: scaleX(1.2); }
+            75% { opacity: 0.7; transform: scaleX(1.1); }
+        }
+        
+        @keyframes float-particle {
+            0% { transform: translateY(0px) translateX(0px); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-100px) translateX(50px); opacity: 0; }
+        }
+        
+        @keyframes data-flow {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(200%); }
+        }
+        
+        @keyframes data-pulse {
+            0%, 100% { transform: translateX(0px) scale(1); opacity: 1; }
+            50% { transform: translateX(75px) scale(1.5); opacity: 0.8; }
+        }
+        
+        .tech-circle {
+            position: absolute;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            animation: rotate 20s linear infinite;
+        }
+        
+        .circle-1 {
+            width: 300px;
+            height: 300px;
+            top: -100px;
+            left: -100px;
+            border-color: rgba(33, 150, 243, 0.2);
+        }
+        
+        .circle-2 {
+            width: 200px;
+            height: 200px;
+            bottom: -50px;
+            right: -50px;
+            border-color: rgba(76, 175, 80, 0.2);
+            animation-direction: reverse;
+        }
+        
+        .circle-3 {
+            width: 150px;
+            height: 150px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border-color: rgba(33, 150, 243, 0.15);
+            animation-duration: 15s;
+        }
+        
+        .tech-dots {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: 1;
+        }
+        
+        .tech-dot {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            animation: twinkle 2s ease-in-out infinite;
+        }
+        
+        .dot-1 { top: 20%; left: 10%; animation-delay: 0s; }
+        .dot-2 { top: 30%; right: 15%; animation-delay: 0.5s; }
+        .dot-3 { bottom: 25%; left: 20%; animation-delay: 1s; }
+        .dot-4 { bottom: 35%; right: 25%; animation-delay: 1.5s; }
+        .dot-5 { top: 60%; left: 30%; animation-delay: 2s; }
+        .dot-6 { top: 70%; right: 35%; animation-delay: 2.5s; }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.3; }
+            50% { transform: scale(1.1); opacity: 0.6; }
+        }
+        
+        @keyframes shimmer {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+        
+        @keyframes float-icon {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-6px); }
+            60% { transform: translateY(-3px); }
+        }
+        
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+        
+
+        
+        @media (max-width: 768px) {
+            .title {
+                font-size: 2.8rem;
+            }
+            
+            .main-content {
+                height: 500px;
+            }
+            
+            .student-button {
+                top: 30px;
+                left: 50px;
+                width: 150px;
+                height: 150px;
+            }
+            
+            .teacher-button {
+                bottom: 50px;
+                right: 50px;
+                width: 130px;
+                height: 130px;
+            }
+            
+            .button-icon {
+                font-size: 2rem;
+            }
+            
+            .button-title {
+                font-size: 1.1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="tech-circles">
+        <div class="tech-circle circle-1"></div>
+        <div class="tech-circle circle-2"></div>
+        <div class="tech-circle circle-3"></div>
+    </div>
+    
+    <div class="ai-robot"></div>
+    <div class="ai-robot-2"></div>
+    <div class="ai-circuit"></div>
+    
+    <div class="ai-particles">
+        <div class="ai-particle particle-1"></div>
+        <div class="ai-particle particle-2"></div>
+        <div class="ai-particle particle-3"></div>
+        <div class="ai-particle particle-4"></div>
+        <div class="ai-particle particle-5"></div>
+        <div class="ai-particle particle-6"></div>
+    </div>
+    
+    <div class="data-stream"></div>
+    
+    <div class="tech-dots">
+        <div class="tech-dot dot-1"></div>
+        <div class="tech-dot dot-2"></div>
+        <div class="tech-dot dot-3"></div>
+        <div class="tech-dot dot-4"></div>
+        <div class="tech-dot dot-5"></div>
+        <div class="tech-dot dot-6"></div>
+    </div>
+    
+    <div class="header">
+        <h1 class="title">学伴AI:个性化智学平台</h1>
+        <p class="subtitle">让学习变得更有趣，让教学变得更智能</p>
+    </div>
+    
+    <div class="main-content">
+        <a href="student-center.html" class="space-button student-button">
+            <div class="button-container student-container">
+                <div class="button-content">
+                    <div class="button-icon student-icon">🎓</div>
+                    <div class="button-title student-title">学生空间</div>
+                    <div class="button-subtitle student-subtitle">智能学习助手</div>
+                </div>
+            </div>
+        </a>
+        
+        <a href="teacher-center.html" class="space-button teacher-button">
+            <div class="button-container teacher-container">
+                <div class="button-content">
+                    <div class="button-icon teacher-icon">👨‍🏫</div>
+                    <div class="button-title teacher-title">教师空间</div>
+                    <div class="button-subtitle teacher-subtitle">智慧教学工具</div>
+                </div>
+            </div>
+        </a>
+        
+
+    </div>
+    
+
+    
+
+</body>
+</html>
