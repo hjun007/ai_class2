@@ -7,23 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
-    <!-- 顶部导航栏 -->
-    <nav class="bg-white shadow-lg">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-16">
-                <div class="flex items-center">
-                    <h1 class="text-xl font-bold text-blue-600">📝 {{ paper.name }}</h1>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <a href="/student/quiz" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition duration-200">
-                        返回试卷列表
-                    </a>
-                </div>
-            </div>
-        </div>
-    </nav>
-
-    <!-- 主要内容 -->
+<!-- 主要内容 -->
     <div class="container mx-auto px-4 py-8">
         <div class="max-w-4xl mx-auto">
             <!-- 页面标题和试卷信息 -->
@@ -62,21 +46,156 @@
                         <h4 class="text-lg font-medium text-gray-800">题目内容：</h4>
                     </div>
                     
-                    <!-- 题目内容 -->
+                    <!-- 题目内容解析 -->
+                    {% set quiz_content = item.quiz.content %}
+                    {% set is_single_choice = ('A.' in quiz_content and 'B.' in quiz_content and 'C.' in quiz_content and 'D.' in quiz_content) %}
+                    {% set is_judgment = (('A.' in quiz_content and 'B.' in quiz_content) and ('C.' not in quiz_content and 'D.' not in quiz_content)) %}
+                    
+                    <!-- 题目内容显示 -->
                     <div class="mb-4 p-4 bg-gray-50 rounded-lg">
-                        <p class="text-gray-700">{{ item.quiz.content }}</p>
+                        {% if is_single_choice or is_judgment %}
+                            <!-- 显示题目文本（选择题和判断题） -->
+                            <p class="text-gray-700 mb-4 font-medium">{{ quiz_content.split('A.')[0].strip() }}</p>
+                        {% else %}
+                            <!-- 其他题型直接显示全部内容 -->
+                            <p class="text-gray-700">{{ quiz_content }}</p>
+                        {% endif %}
                     </div>
                     
-                    <!-- 答题区域 (暂时是文本输入框) -->
+                    <!-- 答题区域 -->
                     <div>
-                        <label for="answer_{{ item.quiz.id }}" class="block text-sm font-medium text-gray-700 mb-2">你的答案：</label>
-                        <textarea 
-                            id="answer_{{ item.quiz.id }}" 
-                            name="answer_{{ item.quiz.id }}" 
-                            rows="3"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            placeholder="请输入你的答案"
-                        ></textarea>
+                        <label class="block text-sm font-medium text-gray-700 mb-3">你的答案：</label>
+                        
+                        {% if is_single_choice %}
+                            <!-- 单选题 - ABCD选项 -->
+                            <div class="space-y-3">
+                                <!-- 提取选项A -->
+                                {% if 'A.' in quiz_content and 'B.' in quiz_content %}
+                                    {% set a_start = quiz_content.find('A.') + 2 %}
+                                    {% set b_start = quiz_content.find('B.') %}
+                                    {% set option_a_text = quiz_content[a_start:b_start].strip() %}
+                                    <label class="flex items-start p-3 border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 cursor-pointer transition-all duration-200">
+                                        <input 
+                                            type="radio" 
+                                            name="answer_{{ item.quiz.id }}" 
+                                            value="A"
+                                            class="mt-1 mr-3 text-blue-600 focus:ring-blue-500"
+                                        >
+                                        <div>
+                                            <span class="font-medium text-blue-600">A.</span>
+                                            <span class="text-gray-700 ml-2">{{ option_a_text }}</span>
+                                        </div>
+                                    </label>
+                                {% endif %}
+                                
+                                <!-- 提取选项B -->
+                                {% if 'B.' in quiz_content and 'C.' in quiz_content %}
+                                    {% set b_start = quiz_content.find('B.') + 2 %}
+                                    {% set c_start = quiz_content.find('C.') %}
+                                    {% set option_b_text = quiz_content[b_start:c_start].strip() %}
+                                    <label class="flex items-start p-3 border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 cursor-pointer transition-all duration-200">
+                                        <input 
+                                            type="radio" 
+                                            name="answer_{{ item.quiz.id }}" 
+                                            value="B"
+                                            class="mt-1 mr-3 text-blue-600 focus:ring-blue-500"
+                                        >
+                                        <div>
+                                            <span class="font-medium text-blue-600">B.</span>
+                                            <span class="text-gray-700 ml-2">{{ option_b_text }}</span>
+                                        </div>
+                                    </label>
+                                {% endif %}
+                                
+                                <!-- 提取选项C -->
+                                {% if 'C.' in quiz_content and 'D.' in quiz_content %}
+                                    {% set c_start = quiz_content.find('C.') + 2 %}
+                                    {% set d_start = quiz_content.find('D.') %}
+                                    {% set option_c_text = quiz_content[c_start:d_start].strip() %}
+                                    <label class="flex items-start p-3 border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 cursor-pointer transition-all duration-200">
+                                        <input 
+                                            type="radio" 
+                                            name="answer_{{ item.quiz.id }}" 
+                                            value="C"
+                                            class="mt-1 mr-3 text-blue-600 focus:ring-blue-500"
+                                        >
+                                        <div>
+                                            <span class="font-medium text-blue-600">C.</span>
+                                            <span class="text-gray-700 ml-2">{{ option_c_text }}</span>
+                                        </div>
+                                    </label>
+                                {% endif %}
+                                
+                                <!-- 提取选项D -->
+                                {% if 'D.' in quiz_content %}
+                                    {% set d_start = quiz_content.find('D.') + 2 %}
+                                    {% set option_d_text = quiz_content[d_start:].strip() %}
+                                    <label class="flex items-start p-3 border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 cursor-pointer transition-all duration-200">
+                                        <input 
+                                            type="radio" 
+                                            name="answer_{{ item.quiz.id }}" 
+                                            value="D"
+                                            class="mt-1 mr-3 text-blue-600 focus:ring-blue-500"
+                                        >
+                                        <div>
+                                            <span class="font-medium text-blue-600">D.</span>
+                                            <span class="text-gray-700 ml-2">{{ option_d_text }}</span>
+                                        </div>
+                                    </label>
+                                {% endif %}
+                            </div>
+                            
+                        {% elif is_judgment %}
+                            <!-- 判断题 - AB选项 -->
+                            <div class="space-y-3">
+                                <!-- 提取选项A -->
+                                {% if 'A.' in quiz_content and 'B.' in quiz_content %}
+                                    {% set a_start = quiz_content.find('A.') + 2 %}
+                                    {% set b_start = quiz_content.find('B.') %}
+                                    {% set option_a_text = quiz_content[a_start:b_start].strip() %}
+                                    <label class="flex items-start p-3 border border-gray-200 rounded-lg hover:bg-green-50 hover:border-green-300 cursor-pointer transition-all duration-200">
+                                        <input 
+                                            type="radio" 
+                                            name="answer_{{ item.quiz.id }}" 
+                                            value="A"
+                                            class="mt-1 mr-3 text-green-600 focus:ring-green-500"
+                                        >
+                                        <div>
+                                            <span class="font-medium text-green-600">A.</span>
+                                            <span class="text-gray-700 ml-2">{{ option_a_text }}</span>
+                                        </div>
+                                    </label>
+                                {% endif %}
+                                
+                                <!-- 提取选项B -->
+                                {% if 'B.' in quiz_content %}
+                                    {% set b_start = quiz_content.find('B.') + 2 %}
+                                    {% set option_b_text = quiz_content[b_start:].strip() %}
+                                    <label class="flex items-start p-3 border border-gray-200 rounded-lg hover:bg-green-50 hover:border-green-300 cursor-pointer transition-all duration-200">
+                                        <input 
+                                            type="radio" 
+                                            name="answer_{{ item.quiz.id }}" 
+                                            value="B"
+                                            class="mt-1 mr-3 text-green-600 focus:ring-green-500"
+                                        >
+                                        <div>
+                                            <span class="font-medium text-green-600">B.</span>
+                                            <span class="text-gray-700 ml-2">{{ option_b_text }}</span>
+                                        </div>
+                                    </label>
+                                {% endif %}
+                            </div>
+                            
+                        {% else %}
+                            <!-- 其他题型 - 文本输入框 -->
+                            <textarea 
+                                id="answer_{{ item.quiz.id }}" 
+                                name="answer_{{ item.quiz.id }}" 
+                                rows="4"
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-vertical"
+                                placeholder="请输入你的答案"
+                            ></textarea>
+                        {% endif %}
                     </div>
                 </div>
                 {% endfor %}

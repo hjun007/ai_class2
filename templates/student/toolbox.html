@@ -19,23 +19,6 @@
     </style>
 </head>
 <body class="bg-gradient-to-br from-blue-50 to-purple-100 min-h-screen flex flex-col">
-    <!-- 顶部导航栏 -->
-    <nav class="bg-white shadow-lg">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-16">
-                <div class="flex items-center">
-                    <h1 class="text-xl font-bold text-blue-600">🧰 学习工具箱</h1>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <span class="text-gray-600">{{ session.student_id or '学生' }}</span>
-                    <a href="/student/dashboard" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition duration-200">
-                        返回仪表板
-                    </a>
-                </div>
-            </div>
-        </div>
-    </nav>
-
     <!-- 主要内容 -->
     <div class="flex-grow container mx-auto px-4 py-8">
         <div class="max-w-6xl mx-auto">
@@ -80,14 +63,13 @@
                             </div>
 
                             <!-- 使用按钮 -->
-                            <a 
-                                href="/student/toolbox/tool/{{ tool.id }}" 
-                                target="_blank"
+                            <button 
+                                onclick="loadTool('/student/toolbox/tool/{{ tool.id }}')"
                                 class="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-2 px-3 rounded-lg font-medium transition duration-200 flex items-center justify-center space-x-1 text-sm"
                             >
                                 <span class="text-xs">🚀</span>
                                 <span>立即使用</span>
-                            </a>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -152,7 +134,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-700">
                 <div class="flex items-start space-x-2">
                     <span class="text-blue-500 mt-1">•</span>
-                    <span>点击"立即使用"会在新窗口打开工具</span>
+                    <span>点击"立即使用"会在当前页面打开工具</span>
                 </div>
                 <div class="flex items-start space-x-2">
                     <span class="text-blue-500 mt-1">•</span>
@@ -171,6 +153,12 @@
     </div>
 
     <script>
+        // 加载工具到当前iframe中
+        function loadTool(toolUrl) {
+            // 直接在当前窗口加载工具
+            window.location.href = toolUrl;
+        }
+
         // 工具分类过滤（未来扩展功能）
         document.addEventListener('DOMContentLoaded', function() {
             const filterBtns = document.querySelectorAll('.filter-btn');
@@ -216,11 +204,14 @@
         }
 
         // 为所有工具使用按钮添加统计
-        document.querySelectorAll('a[href*="/toolbox/tool/"]').forEach(link => {
-            link.addEventListener('click', function() {
-                const toolId = this.href.split('/').pop();
+        document.querySelectorAll('button[onclick*="loadTool"]').forEach(button => {
+            button.addEventListener('click', function() {
+                const onclickValue = this.getAttribute('onclick');
+                const toolId = onclickValue.match(/tool\/(\d+)/)?.[1];
                 const toolName = this.closest('.bg-white').querySelector('h3').textContent;
-                trackToolUsage(toolId, toolName);
+                if (toolId) {
+                    trackToolUsage(toolId, toolName);
+                }
             });
         });
     </script>

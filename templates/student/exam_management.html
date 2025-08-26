@@ -7,26 +7,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gradient-to-br from-green-50 to-emerald-100 min-h-screen">
-    <!-- 顶部导航栏 -->
-    <nav class="bg-white shadow-lg">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-16">
-                <div class="flex items-center">
-                    <h1 class="text-xl font-bold text-green-600">📊 考试管理</h1>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <span class="text-gray-600">欢迎，{{ session.student_id or '学生' }}</span>
-                    <a href="/student/dashboard" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition duration-200">
-                        返回仪表板
-                    </a>
-                    <a href="/student/logout" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition duration-200">
-                        退出登录
-                    </a>
-                </div>
-            </div>
-        </div>
-    </nav>
-
     <!-- 主要内容 -->
     <div class="container mx-auto px-4 py-8">
         <div class="max-w-6xl mx-auto">

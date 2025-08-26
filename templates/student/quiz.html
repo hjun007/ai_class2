@@ -7,22 +7,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
-    <!-- 顶部导航栏 -->
-    <nav class="bg-white shadow-lg">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-16">
-                <div class="flex items-center">
-                    <h1 class="text-xl font-bold text-blue-600">📝 在线答题</h1>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <a href="/student/dashboard" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition duration-200">
-                        返回仪表板
-                    </a>
-                </div>
-            </div>
-        </div>
-    </nav>
-
     <!-- 主要内容 -->
     <div class="container mx-auto px-4 py-8">
         <div class="max-w-6xl mx-auto">
@@ -68,9 +52,9 @@
                             <a href="/student/take_quiz/{{ paper_info.paper.id }}" class="flex-1 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium transition duration-200">
                                 开始答题
                             </a>
-                            <button class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-medium transition duration-200">
+                            <!-- <button class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-medium transition duration-200">
                                 预览
-                            </button>
+                            </button> -->
                             {% else %}
                             <button class="flex-1 bg-gray-300 text-gray-500 px-4 py-2 rounded-lg font-medium cursor-not-allowed" disabled>
                                 暂无题目
