@@ -16,7 +16,8 @@ student_bp = Blueprint('student', __name__, url_prefix='/student')
 def login():
     """学生登录页面"""
     if request.method == 'POST':
-        student_id = request.form.get('student_id', '').strip()
+        # 兼容首页弹窗和登录页面的字段名
+        student_id = request.form.get('username', '').strip() or request.form.get('student_id', '').strip()
         password = request.form.get('password', '').strip()
         
         if not student_id:
@@ -450,7 +451,7 @@ def logout():
     """学生退出登录"""
     session.clear()
     flash('已退出登录！', 'info')
-    return redirect(url_for('student.login'))
+    return redirect(url_for('main.index'))
 
 @student_bp.route('/toolbox')
 def toolbox():

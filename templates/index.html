@@ -55,12 +55,12 @@
             0% { transform: translateY(0px) translateX(0px); opacity: 0; }
             10% { opacity: 1; }
             90% { opacity: 1; }
-            100% { transform: translateY(-100px) translateX(50px); opacity: 0; }
+            100% { transform: translateY(-50px) translateX(25px); opacity: 0; }
         }
         
         @keyframes data-flow {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(200%); }
+            0% { transform: translateX(-50%); }
+            100% { transform: translateX(150%); }
         }
         
         @keyframes data-pulse {
@@ -235,11 +235,19 @@
             left: 0;
             animation: data-pulse 3s linear infinite;
         }
+        
+        /* 确保页面不产生滚动条 */
+        html, body {
+            height: 100%;
+            overflow: hidden;
+            margin: 0;
+            padding: 0;
+        }
     </style>
 </head>
-<body class="min-h-screen bg-gradient-to-br from-blue-50 via-blue-25 to-blue-50 flex flex-col items-center p-5 relative overflow-hidden font-sans">
+<body class="h-screen bg-gradient-to-br from-blue-50 via-blue-25 to-blue-50 flex flex-col items-center p-5 relative overflow-hidden font-sans">
     <!-- 背景装饰圆圈 -->
-    <div class="absolute inset-0 pointer-events-none z-0">
+    <div class="absolute inset-0 pointer-events-none z-0 overflow-hidden">
         <div class="absolute w-80 h-80 -top-24 -left-24 border border-blue-300/20 rounded-full rotate-circle"></div>
         <div class="absolute w-52 h-52 -bottom-12 -right-12 border border-green-400/20 rounded-full rotate-reverse"></div>
         <div class="absolute w-40 h-40 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 border border-blue-300/15 rounded-full" style="animation: rotate 15s linear infinite;"></div>
@@ -253,7 +261,7 @@
     <div class="ai-circuit absolute w-52 h-0.5 bg-gradient-to-r from-transparent via-blue-400 to-transparent top-[30%] right-[5%] opacity-60 pulse-circuit shadow-sm z-0"></div>
     
     <!-- 粒子动画 -->
-    <div class="absolute inset-0 pointer-events-none z-0">
+    <div class="absolute inset-0 pointer-events-none z-0 overflow-hidden">
         <div class="absolute w-1 h-1 bg-blue-400 rounded-full top-[10%] left-[20%] float-particle"></div>
         <div class="absolute w-1 h-1 bg-blue-400 rounded-full top-[25%] right-[15%] float-particle" style="animation-delay: 1s;"></div>
         <div class="absolute w-1 h-1 bg-blue-400 rounded-full bottom-[30%] left-[25%] float-particle" style="animation-delay: 2s;"></div>
@@ -266,7 +274,7 @@
     <div class="absolute w-40 h-px bg-gradient-to-r from-transparent via-green-400 to-transparent top-[70%] left-[10%] opacity-50 data-flow"></div>
     
     <!-- 闪烁点装饰 -->
-    <div class="absolute inset-0 pointer-events-none z-0">
+    <div class="absolute inset-0 pointer-events-none z-0 overflow-hidden">
         <div class="absolute w-1 h-1 bg-white/30 rounded-full top-[20%] left-[10%] twinkle"></div>
         <div class="absolute w-1 h-1 bg-white/30 rounded-full top-[30%] right-[15%] twinkle" style="animation-delay: 0.5s;"></div>
         <div class="absolute w-1 h-1 bg-white/30 rounded-full bottom-[25%] left-[20%] twinkle" style="animation-delay: 1s;"></div>
@@ -417,7 +425,6 @@
             }
             
             modal.classList.remove('hidden');
-            document.body.style.overflow = 'hidden';
             
             // 聚焦到用户名输入框
             setTimeout(() => {
@@ -436,7 +443,6 @@
                 modal.classList.add('hidden');
                 modalContent.classList.remove('modal-hide');
                 modalContent.classList.add('modal-show');
-                document.body.style.overflow = 'auto';
                 
                 // 清空表单
                 document.getElementById('loginForm').reset();
@@ -464,25 +470,46 @@
             const formData = new FormData(this);
             const loginUrl = currentUserType === 'student' ? '/student/login' : '/teacher/login';
             
+            // 添加登录按钮加载状态
+            const loginButton = document.getElementById('loginButton');
+            const originalText = loginButton.textContent;
+            loginButton.textContent = '登录中...';
+            loginButton.disabled = true;
+            
             fetch(loginUrl, {
                 method: 'POST',
                 body: formData
             })
             .then(response => {
-                if (response.ok) {
-                    // 登录成功，跳转到对应的仪表板
-                    const dashboardUrl = currentUserType === 'student' ? '/student/dashboard' : '/teacher/dashboard';
-                    window.location.href = dashboardUrl;
-                } else {
-                    // 登录失败，显示错误信息
-                    return response.text().then(text => {
-                        alert('登录失败，请检查用户名和密码');
+                if (response.redirected) {
+                    // 登录成功，Flask返回了重定向响应
+                    window.location.href = response.url;
+                } else if (response.ok) {
+                    // 检查响应内容，如果包含dashboard页面则表示成功
+                    return response.text().then(html => {
+                        if (html.includes('仪表板') || html.includes('dashboard')) {
+                            // 登录成功，手动跳转
+                            const dashboardUrl = currentUserType === 'student' ? '/student/dashboard' : '/teacher/dashboard';
+                            window.location.href = dashboardUrl;
+                        } else {
+                            // 登录失败，页面包含错误信息
+                            alert('登录失败，请检查用户名和密码');
+                            loginButton.textContent = originalText;
+                            loginButton.disabled = false;
+                        }
                     });
+                } else {
+                    // HTTP错误状态
+                    alert('登录失败，请检查用户名和密码');
+                    loginButton.textContent = originalText;
+                    loginButton.disabled = false;
                 }
             })
             .catch(error => {
                 console.error('登录错误:', error);
                 alert('登录时发生错误，请稍后重试');
+                loginButton.textContent = originalText;
+                loginButton.disabled = false;
             });
         });
     </script>

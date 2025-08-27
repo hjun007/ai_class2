@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, request, flash, jsonify, current_app
+from flask import Blueprint, render_template, redirect, url_for, request, flash, jsonify, current_app, session
 from models.paper import Paper
 from models.paper_quiz import PaperQuiz
 from models.quiz import Quiz
@@ -35,9 +35,24 @@ def ensure_upload_folder():
 # 配置OpenAI API
 # openai.api_key = os.environ.get('OPENAI_API_KEY')
 
-@teacher_bp.route('/login')
+@teacher_bp.route('/login', methods=['GET', 'POST'])
 def login():
     """老师登录页面"""
+    if request.method == 'POST':
+        teacher_id = request.form.get('username', '').strip()
+        password = request.form.get('password', '').strip()
+        
+        if not teacher_id:
+            flash('请输入教师账号！', 'error')
+            return render_template('teacher/login.html')
+        
+        # 暂不核对密码，直接将用户名保存到session
+        session['teacher_id'] = teacher_id
+        session['teacher_name'] = teacher_id  # 可以后续改为真实姓名
+        
+        flash(f'欢迎 {teacher_id}！', 'success')
+        return redirect(url_for('teacher.dashboard'))
+    
     return render_template('teacher/login.html')
 
 @teacher_bp.route('/dashboard')
