@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ paper.name }} - 逐步答题 - AI课程助手系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .question-transition {
+            transition: all 0.5s ease-in-out;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .slide-out-left {
+            animation: slideOutLeft 0.3s ease-in-out;
+        }
+        
+        @keyframes slideOutLeft {
+            from { opacity: 1; transform: translateX(0); }
+            to { opacity: 0; transform: translateX(-100%); }
+        }
+        
+        .slide-in-right {
+            animation: slideInRight 0.3s ease-in-out;
+        }
+        
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(100%); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        .progress-bar {
+            transition: width 0.3s ease-in-out;
+        }
+        
+        .question-number {
+            transition: all 0.2s ease-in-out;
+        }
+        
+        .question-number:hover {
+            transform: scale(1.05);
+        }
+        
+        .question-number.answered {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+        
+        .question-number.current {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+            transform: scale(1.1);
+        }
+        
+        .question-number.unanswered {
+            background: #f3f4f6;
+            color: #6b7280;
+            border: 2px solid #e5e7eb;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <div class="flex h-screen">
+        <!-- 左侧题目区域 -->
+        <div class="flex-1 flex flex-col">
+            <!-- 顶部信息栏 -->
+            <div class="bg-white shadow-sm border-b border-gray-200 p-3">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1 class="text-lg font-semibold text-gray-800">{{ paper.name }}</h1>
+                        <p class="text-sm text-gray-600">第 <span id="current-question-num">1</span> 题，共 {{ quizzes|length }} 题</p>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <div class="text-xs text-gray-500">
+                            已答：<span id="answered-count">0</span> / {{ quizzes|length }}
+                        </div>
+                        <button onclick="submitQuiz()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-1.5 rounded-lg text-sm font-medium transition duration-200">
+                            提交试卷
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 题目内容区域 -->
+            <div class="flex-1 p-6 overflow-y-auto">
+                <div id="question-container" class="max-w-4xl mx-auto">
+                    <!-- 题目内容将通过JavaScript动态加载 -->
+                </div>
+            </div>
+            
+            <!-- 底部导航按钮 -->
+            <div class="bg-white border-t border-gray-200 p-3">
+                <div class="flex justify-between items-center max-w-4xl mx-auto">
+                    <button id="prev-btn" onclick="previousQuestion()" 
+                            class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-1.5 rounded-lg text-sm font-medium transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
+                        上一题
+                    </button>
+                    <div class="flex space-x-2">
+                        <button onclick="markForReview()" 
+                                class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1.5 rounded-lg text-sm font-medium transition duration-200">
+                            标记待复查
+                        </button>
+                        <button id="next-btn" onclick="nextQuestion()" 
+                                class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded-lg text-sm font-medium transition duration-200">
+                            下一题
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 右侧题目导航和进度条 -->
+        <div class="w-80 bg-white border-l border-gray-200 p-6 overflow-y-auto">
+            <div class="sticky top-0">
+                <!-- 进度条 -->
+                <div class="mb-6">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-sm font-medium text-gray-700">答题进度</span>
+                        <span class="text-sm text-gray-500" id="progress-text">0%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-3">
+                        <div id="progress-bar" class="progress-bar bg-gradient-to-r from-blue-500 to-blue-600 h-3 rounded-full" style="width: 0%"></div>
+                    </div>
+                </div>
+                
+                <!-- 题目序号网格 -->
+                <div class="mb-4">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">题目导航</h3>
+                    <div class="grid grid-cols-5 gap-3" id="question-numbers">
+                        <!-- 题目序号将通过JavaScript动态生成 -->
+                    </div>
+                </div>
+                
+                <!-- 答题统计 -->
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <h4 class="font-medium text-gray-800 mb-3">答题统计</h4>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">已答题：</span>
+                            <span class="font-medium text-green-600" id="answered-stat">0</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">未答题：</span>
+                            <span class="font-medium text-gray-500" id="unanswered-stat">{{ quizzes|length }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">标记复查：</span>
+                            <span class="font-medium text-yellow-600" id="marked-stat">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 隐藏的表单，用于提交答案 -->
+    <form id="quiz-form" method="POST" action="/student/submit_quiz/{{ paper.id }}" style="display: none;">
+        <!-- 答案将通过JavaScript动态添加 -->
+    </form>
+
+    <script>
+        // 全局变量
+        let currentQuestionIndex = 0;
+        let totalQuestions = {{ quizzes|length }};
+        let answers = {};
+        let markedQuestions = new Set();
+        let quizData = {{ quizzes|tojson }};
+        let autoAdvanceTimer = null;
+        
+        // 初始化页面
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeQuiz();
+            generateQuestionNumbers();
+            loadQuestion(currentQuestionIndex);
+            updateProgress();
+        });
+        
+        // 初始化答题数据
+        function initializeQuiz() {
+            // 初始化答案对象
+            for (let i = 0; i < totalQuestions; i++) {
+                answers[i] = null;
+            }
+        }
+        
+        // 生成题目序号网格
+        function generateQuestionNumbers() {
+            const container = document.getElementById('question-numbers');
+            container.innerHTML = '';
+            
+            for (let i = 0; i < totalQuestions; i++) {
+                const numberDiv = document.createElement('div');
+                numberDiv.className = 'question-number w-12 h-12 rounded-lg flex items-center justify-center font-medium cursor-pointer transition-all duration-200 unanswered';
+                numberDiv.textContent = i + 1;
+                numberDiv.onclick = () => goToQuestion(i);
+                container.appendChild(numberDiv);
+            }
+        }
+        
+        // 跳转到指定题目
+        function goToQuestion(index) {
+            if (index >= 0 && index < totalQuestions) {
+                currentQuestionIndex = index;
+                loadQuestion(currentQuestionIndex);
+                updateQuestionNumbers();
+                updateProgress();
+            }
+        }
+        
+        // 加载题目内容
+        function loadQuestion(index) {
+            const container = document.getElementById('question-container');
+            const question = quizData[index];
+            
+            if (!question) return;
+            
+            // 解析题目内容
+            const quizContent = question.quiz.content;
+            const isSingleChoice = (quizContent.includes('A.') && quizContent.includes('B.') && 
+                                  quizContent.includes('C.') && quizContent.includes('D.'));
+            const isJudgment = (quizContent.includes('A.') && quizContent.includes('B.') && 
+                              !quizContent.includes('C.') && !quizContent.includes('D.'));
+            
+            // 提取题目文本
+            let questionText = '';
+            if (isSingleChoice || isJudgment) {
+                questionText = quizContent.split('A.')[0].trim();
+            } else {
+                questionText = quizContent;
+            }
+            
+            // 生成HTML
+            let html = `
+                <div class="bg-white rounded-xl shadow-lg p-6 question-transition fade-in">
+                    <div class="flex items-start mb-4">
+                        <span class="inline-flex items-center justify-center w-8 h-8 bg-blue-100 text-blue-600 rounded-full text-sm font-medium mr-3 flex-shrink-0">
+                            ${index + 1}
+                        </span>
+                        <div class="flex-1">
+                            <p class="text-gray-700 text-base leading-relaxed">${questionText}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-3">你的答案：</label>
+            `;
+            
+            // 生成选项
+            if (isSingleChoice) {
+                html += generateSingleChoiceOptions(quizContent, index);
+            } else if (isJudgment) {
+                html += generateJudgmentOptions(quizContent, index);
+            } else {
+                html += generateTextInput(index);
+            }
+            
+            html += `
+                    </div>
+                </div>
+            `;
+            
+            container.innerHTML = html;
+            
+            // 恢复已保存的答案
+            restoreAnswer(index);
+            
+            // 更新导航按钮状态
+            updateNavigationButtons();
+            updateQuestionNumbers();
+        }
+        
+        // 生成单选题选项
+        function generateSingleChoiceOptions(content, index) {
+            let html = '<div class="space-y-2">';
+            const options = ['A', 'B', 'C', 'D'];
+            
+            for (let i = 0; i < options.length; i++) {
+                const option = options[i];
+                const nextOption = options[i + 1] || '';
+                const startPattern = option + '.';
+                const endPattern = nextOption ? nextOption + '.' : '';
+                
+                if (content.includes(startPattern)) {
+                    const startIndex = content.indexOf(startPattern) + 2;
+                    const endIndex = endPattern ? content.indexOf(endPattern) : content.length;
+                    const optionText = content.substring(startIndex, endIndex).trim();
+                    
+                    html += `
+                        <label class="flex items-center p-2 border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 cursor-pointer transition-all duration-200">
+                            <input type="radio" name="answer_${index}" value="${option}" 
+                                   class="mr-3 text-blue-600 focus:ring-blue-500 w-4 h-4">
+                            <div class="flex-1">
+                                <span class="font-medium text-blue-600 text-sm">${option}.</span>
+                                <span class="text-gray-700 ml-2 text-sm">${optionText}</span>
+                            </div>
+                        </label>
+                    `;
+                }
+            }
+            
+            html += '</div>';
+            return html;
+        }
+        
+        // 生成判断题选项
+        function generateJudgmentOptions(content, index) {
+            let html = '<div class="space-y-2">';
+            const options = ['A', 'B'];
+            
+            for (let i = 0; i < options.length; i++) {
+                const option = options[i];
+                const nextOption = options[i + 1] || '';
+                const startPattern = option + '.';
+                const endPattern = nextOption ? nextOption + '.' : '';
+                
+                if (content.includes(startPattern)) {
+                    const startIndex = content.indexOf(startPattern) + 2;
+                    const endIndex = endPattern ? content.indexOf(endPattern) : content.length;
+                    const optionText = content.substring(startIndex, endIndex).trim();
+                    
+                    html += `
+                        <label class="flex items-center p-2 border border-gray-200 rounded-lg hover:bg-green-50 hover:border-green-300 cursor-pointer transition-all duration-200">
+                            <input type="radio" name="answer_${index}" value="${option}" 
+                                   class="mr-3 text-green-600 focus:ring-green-500 w-4 h-4">
+                            <div class="flex-1">
+                                <span class="font-medium text-green-600 text-sm">${option}.</span>
+                                <span class="text-gray-700 ml-2 text-sm">${optionText}</span>
+                            </div>
+                        </label>
+                    `;
+                }
+            }
+            
+            html += '</div>';
+            return html;
+        }
+        
+        // 生成文本输入框
+        function generateTextInput(index) {
+            return `
+                <textarea id="answer_${index}" name="answer_${index}" rows="4"
+                          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-vertical text-sm"
+                          placeholder="请输入你的答案"></textarea>
+            `;
+        }
+        
+        // 恢复已保存的答案
+        function restoreAnswer(index) {
+            const savedAnswer = answers[index];
+            if (savedAnswer !== null) {
+                const input = document.querySelector(`input[name="answer_${index}"], textarea[name="answer_${index}"]`);
+                if (input) {
+                    if (input.type === 'radio') {
+                        const radioInput = document.querySelector(`input[name="answer_${index}"][value="${savedAnswer}"]`);
+                        if (radioInput) {
+                            radioInput.checked = true;
+                        }
+                    } else {
+                        input.value = savedAnswer;
+                    }
+                }
+            }
+        }
+        
+        // 保存当前答案
+        function saveAnswer() {
+            const inputs = document.querySelectorAll(`input[name="answer_${currentQuestionIndex}"], textarea[name="answer_${currentQuestionIndex}"]`);
+            let answer = null;
+            
+            for (let input of inputs) {
+                if (input.type === 'radio' && input.checked) {
+                    answer = input.value;
+                    break;
+                } else if (input.type === 'textarea' || input.type === 'text') {
+                    answer = input.value.trim();
+                    break;
+                }
+            }
+            
+            answers[currentQuestionIndex] = answer;
+            updateProgress();
+        }
+        
+        // 下一题
+        function nextQuestion() {
+            saveAnswer();
+            if (currentQuestionIndex < totalQuestions - 1) {
+                currentQuestionIndex++;
+                loadQuestion(currentQuestionIndex);
+            }
+        }
+        
+        // 上一题
+        function previousQuestion() {
+            saveAnswer();
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                loadQuestion(currentQuestionIndex);
+            }
+        }
+        
+        // 标记待复查
+        function markForReview() {
+            if (markedQuestions.has(currentQuestionIndex)) {
+                markedQuestions.delete(currentQuestionIndex);
+            } else {
+                markedQuestions.add(currentQuestionIndex);
+            }
+            updateQuestionNumbers();
+            updateProgress();
+        }
+        
+        // 更新导航按钮状态
+        function updateNavigationButtons() {
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            
+            prevBtn.disabled = currentQuestionIndex === 0;
+            nextBtn.textContent = currentQuestionIndex === totalQuestions - 1 ? '完成' : '下一题';
+        }
+        
+        // 更新题目序号显示
+        function updateQuestionNumbers() {
+            const numbers = document.querySelectorAll('.question-number');
+            numbers.forEach((num, index) => {
+                num.className = 'question-number w-12 h-12 rounded-lg flex items-center justify-center font-medium cursor-pointer transition-all duration-200';
+                
+                if (index === currentQuestionIndex) {
+                    num.classList.add('current');
+                } else if (answers[index] !== null) {
+                    num.classList.add('answered');
+                } else if (markedQuestions.has(index)) {
+                    num.classList.add('unanswered');
+                    num.style.background = 'linear-gradient(135deg, #f59e0b, #d97706)';
+                    num.style.color = 'white';
+                    num.style.boxShadow = '0 4px 12px rgba(245, 158, 11, 0.3)';
+                } else {
+                    num.classList.add('unanswered');
+                }
+            });
+        }
+        
+        // 更新进度
+        function updateProgress() {
+            const answeredCount = Object.values(answers).filter(answer => answer !== null).length;
+            const progress = (answeredCount / totalQuestions) * 100;
+            
+            document.getElementById('current-question-num').textContent = currentQuestionIndex + 1;
+            document.getElementById('answered-count').textContent = answeredCount;
+            document.getElementById('progress-text').textContent = Math.round(progress) + '%';
+            document.getElementById('progress-bar').style.width = progress + '%';
+            
+            // 更新统计信息
+            document.getElementById('answered-stat').textContent = answeredCount;
+            document.getElementById('unanswered-stat').textContent = totalQuestions - answeredCount;
+            document.getElementById('marked-stat').textContent = markedQuestions.size;
+        }
+        
+        // 自动跳转到下一题（答完当前题后）
+        function autoAdvanceToNext() {
+            if (currentQuestionIndex < totalQuestions - 1) {
+                // 延迟1秒后自动跳转
+                autoAdvanceTimer = setTimeout(() => {
+                    currentQuestionIndex++;
+                    loadQuestion(currentQuestionIndex);
+                    updateQuestionNumbers();
+                    updateProgress();
+                }, 1000);
+            }
+        }
+        
+        // 提交试卷
+        function submitQuiz() {
+            saveAnswer();
+            
+            // 检查是否有未答题
+            const unanswered = Object.values(answers).filter(answer => answer === null).length;
+            if (unanswered > 0) {
+                if (!confirm(`还有 ${unanswered} 道题未作答，确定要提交吗？`)) {
+                    return;
+                }
+            }
+            
+            // 构建表单数据
+            const form = document.getElementById('quiz-form');
+            form.innerHTML = '';
+            
+            for (let i = 0; i < totalQuestions; i++) {
+                if (answers[i] !== null) {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = `answer_${quizData[i].quiz.id}`;
+                    input.value = answers[i];
+                    form.appendChild(input);
+                }
+            }
+            
+            // 提交表单
+            form.submit();
+        }
+        
+        // 监听答案变化
+        document.addEventListener('change', function(e) {
+            if (e.target.name && e.target.name.startsWith('answer_')) {
+                saveAnswer();
+                updateQuestionNumbers();
+                
+                // 如果是选择题或判断题，答完后自动跳转
+                if (e.target.type === 'radio') {
+                    autoAdvanceToNext();
+                }
+            }
+        });
+        
+        // 监听文本输入
+        document.addEventListener('input', function(e) {
+            if (e.target.name && e.target.name.startsWith('answer_')) {
+                saveAnswer();
+                updateQuestionNumbers();
+            }
+        });
+        
+        // 页面卸载时清理定时器
+        window.addEventListener('beforeunload', function() {
+            if (autoAdvanceTimer) {
+                clearTimeout(autoAdvanceTimer);
+            }
+        });
+    </script>
+</body>
+</html>

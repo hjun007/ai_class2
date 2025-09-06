@@ -100,6 +100,43 @@ def take_quiz(paper_id):
     
     return render_template('student/take_quiz.html', paper=paper, quizzes=quizzes_in_paper)
 
+@student_bp.route('/take_quiz2/<int:paper_id>')
+def take_quiz2(paper_id):
+    """学生逐步答题页面 - 单题显示模式"""
+    # 检查是否已登录
+    if 'student_id' not in session:
+        flash('请先登录！', 'error')
+        return redirect(url_for('student.login'))
+    
+    paper = Paper.get_paper_by_id(paper_id)
+    if not paper:
+        flash('试卷不存在！', 'error')
+        return redirect(url_for('student.quiz'))
+    
+    # 确保试卷已发布
+    if paper.status != 'published':
+        flash('该试卷未发布，无法进行答题。' , 'error')
+        return redirect(url_for('student.quiz'))
+
+    # 获取试卷中的所有题目
+    paper_quizzes = PaperQuiz.get_paper_quizzes(paper_id)
+    quizzes_in_paper = []
+    for pq in paper_quizzes:
+        quiz = Quiz.get_quiz_by_id(pq.quiz_id)
+        if quiz:
+            quizzes_in_paper.append({
+                'paper_quiz': {
+                    'question_order': pq.question_order,
+                    'score': pq.score
+                },
+                'quiz': {
+                    'id': quiz.id,
+                    'content': quiz.content
+                }
+            })
+    
+    return render_template('student/take_quiz2.html', paper=paper, quizzes=quizzes_in_paper)
+
 @student_bp.route('/ai-assistant')
 def ai_assistant():
     """AI智能体页面"""
