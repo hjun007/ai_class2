@@ -38,6 +38,7 @@ pip install -r requirements.txt
 
 ```bash
 python app.py
+nohup python app.py >log.out 0<&1 2>&1 &   #后台运行并输出日志
 ```
 
 ### 3. 访问应用
