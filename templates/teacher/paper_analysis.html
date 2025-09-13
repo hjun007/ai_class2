@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>试卷分析 - {{ paper.name }} - AI课程助手系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gradient-to-br from-indigo-50 to-blue-100 min-h-screen">
+    <!-- 导航栏 -->
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="/teacher/statistics" class="text-indigo-600 hover:text-indigo-800 font-medium">
+                        ← 返回统计页面
+                    </a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="text-gray-600">试卷分析</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主要内容 -->
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-7xl mx-auto">
+            <!-- 页面标题 -->
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold text-gray-800 mb-2">{{ paper.name }}</h2>
+                <p class="text-gray-600">试卷详细统计分析</p>
+            </div>
+
+            <!-- 消息提示 -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="mb-6">
+                        {% for category, message in messages %}
+                            <div class="p-4 rounded-lg {% if category == 'success' %}bg-green-100 text-green-700 border border-green-200{% elif category == 'error' %}bg-red-100 text-red-700 border border-red-200{% else %}bg-blue-100 text-blue-700 border border-blue-200{% endif %}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            <!-- 试卷基本统计 -->
+            <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+                <h3 class="text-xl font-semibold text-gray-800 mb-6">试卷统计概览</h3>
+                
+                <!-- 统计卡片 -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+                    <div class="bg-blue-50 rounded-lg p-4 text-center">
+                        <div class="text-2xl font-bold text-blue-600">{{ paper_stats.total_attempts }}</div>
+                        <div class="text-gray-600">答题次数</div>
+                    </div>
+                    <div class="bg-green-50 rounded-lg p-4 text-center">
+                        <div class="text-2xl font-bold text-green-600">{{ paper_stats.average_score }}</div>
+                        <div class="text-gray-600">平均分</div>
+                    </div>
+                    <div class="bg-purple-50 rounded-lg p-4 text-center">
+                        <div class="text-2xl font-bold text-purple-600">{{ paper_stats.average_accuracy }}%</div>
+                        <div class="text-gray-600">平均正确率</div>
+                    </div>
+                    <div class="bg-orange-50 rounded-lg p-4 text-center">
+                        <div class="text-2xl font-bold text-orange-600">{{ paper_stats.pass_rate }}%</div>
+                        <div class="text-gray-600">及格率</div>
+                    </div>
+                </div>
+
+                <!-- 分数分布图 -->
+                {% if paper_stats.total_attempts > 0 %}
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <h4 class="text-lg font-medium text-gray-800 mb-4">分数分布</h4>
+                    <canvas id="scoreDistributionChart" width="400" height="200"></canvas>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- 题目详细统计 -->
+            {% if questions_stats %}
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                <div class="px-6 py-4 bg-gray-50 border-b">
+                    <h3 class="text-lg font-semibold text-gray-800">题目详细分析</h3>
+                    <p class="text-sm text-gray-600 mt-1">每道题的答题情况和正确率统计</p>
+                </div>
+                
+                <div class="p-6">
+                    {% for question in questions_stats %}
+                    <div class="mb-8 p-6 border border-gray-200 rounded-lg">
+                        <!-- 题目标题 -->
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="flex-1">
+                                <h4 class="text-lg font-medium text-gray-800 mb-2">
+                                    第{{ question.question_order }}题 ({{ question.score }}分)
+                                </h4>
+                                <div class="text-gray-700 mb-2">{{ question.content }}</div>
+                                <div class="text-sm text-green-600 mb-2">
+                                    <strong>正确答案：</strong>{{ question.correct_answer }}
+                                </div>
+                                {% if question.analysis %}
+                                <div class="text-sm text-gray-600">
+                                    <strong>解析：</strong>{{ question.analysis }}
+                                </div>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- 统计信息 -->
+                            <div class="ml-6 text-right">
+                                <div class="bg-gray-50 rounded-lg p-4 min-w-[200px]">
+                                    <div class="text-2xl font-bold {% if question.accuracy_rate >= 80 %}text-green-600{% elif question.accuracy_rate >= 60 %}text-yellow-600{% else %}text-red-600{% endif %}">
+                                        {{ question.accuracy_rate }}%
+                                    </div>
+                                    <div class="text-sm text-gray-600 mb-2">正确率</div>
+                                    <div class="text-xs text-gray-500">
+                                        答题{{ question.total_answers }}次<br>
+                                        正确{{ question.correct_answers }}次<br>
+                                        错误{{ question.wrong_answers }}次
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 错误答案分析 -->
+                        {% if question.error_distribution %}
+                        <div class="mt-4 p-4 bg-red-50 rounded-lg">
+                            <h5 class="text-sm font-medium text-red-800 mb-3">常见错误答案</h5>
+                            <div class="space-y-2">
+                                {% for error_answer, count in question.error_distribution %}
+                                <div class="flex justify-between items-center text-sm">
+                                    <span class="text-gray-700">{{ error_answer }}</span>
+                                    <span class="bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs">
+                                        {{ count }}次
+                                    </span>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- 难度评估 -->
+                        <div class="mt-4 flex items-center">
+                            <span class="text-sm text-gray-600 mr-2">难度评估：</span>
+                            {% if question.accuracy_rate >= 80 %}
+                            <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
+                                简单
+                            </span>
+                            {% elif question.accuracy_rate >= 60 %}
+                            <span class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-medium">
+                                中等
+                            </span>
+                            {% else %}
+                            <span class="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm font-medium">
+                                困难
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% else %}
+            <!-- 无题目数据时的提示 -->
+            <div class="text-center py-16 bg-white rounded-xl shadow-lg">
+                <div class="w-32 h-32 mx-auto mb-8 bg-gray-100 rounded-full flex items-center justify-center">
+                    <span class="text-5xl text-gray-400">📝</span>
+                </div>
+                <h2 class="text-2xl font-semibold text-gray-600 mb-4">该试卷还没有答题数据</h2>
+                <p class="text-gray-500 mb-8">请等待学生答题后再来查看详细分析</p>
+                <a href="/teacher/statistics" class="bg-indigo-500 hover:bg-indigo-600 text-white px-6 py-3 rounded-lg font-medium transition duration-200">
+                    返回统计页面
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        // 绘制分数分布图
+        {% if paper_stats.total_attempts > 0 %}
+        const ctx = document.getElementById('scoreDistributionChart').getContext('2d');
+        
+        const scoreData = {{ paper_stats.score_distribution|tojson|safe }};
+        const labels = scoreData.map(item => item[0]);
+        const counts = scoreData.map(item => item[1]);
+
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: '学生人数',
+                    data: counts,
+                    backgroundColor: 'rgba(99, 102, 241, 0.8)',
+                    borderColor: 'rgba(99, 102, 241, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    title: {
+                        display: true,
+                        text: '分数分布 (按百分制)'
+                    }
+                }
+            }
+        });
+        {% endif %}
+    </script>
+</body>
+</html>

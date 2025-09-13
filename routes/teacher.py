@@ -12,6 +12,7 @@ import json
 import logging
 from config import Config
 from collections import defaultdict
+import re
 from datetime import datetime, timedelta
 from werkzeug.utils import secure_filename
 import uuid
@@ -22,6 +23,7 @@ teacher_bp = Blueprint('teacher', __name__, url_prefix='/teacher')
 # 配置文件上传
 UPLOAD_FOLDER = 'static/tools'
 ALLOWED_EXTENSIONS = {'html', 'htm'}
+URL_LINK_PREFIX = 'url_'
 
 def allowed_file(filename):
     """检查文件扩展名是否允许"""
@@ -387,7 +389,170 @@ def statistics():
     students_list = list(students_data.values())
     students_list.sort(key=lambda x: x['average_rate'], reverse=True)
     
-    return render_template('teacher/statistics.html', students=students_list)
+    # 获取试卷统计数据
+    papers_data = get_papers_statistics()
+    
+    return render_template('teacher/statistics.html', students=students_list, papers=papers_data)
+
+def get_papers_statistics():
+    """获取试卷统计数据"""
+    all_papers = Paper.get_all_papers()
+    papers_data = []
+    
+    for paper in all_papers:
+        # 获取试卷的题目数量
+        paper_quizzes = PaperQuiz.get_paper_quizzes(paper.id)
+        question_count = len(paper_quizzes)
+        
+        # 获取试卷的考试记录
+        exam_records = ExamRecord.get_paper_exam_records(paper.id)
+        total_attempts = len(exam_records)
+        
+        if total_attempts > 0:
+            # 计算平均分和平均正确率
+            total_score = sum(record.total_score for record in exam_records)
+            total_max_score = sum(record.max_score for record in exam_records)
+            average_score = total_score / total_attempts
+            average_accuracy = (total_score / total_max_score * 100) if total_max_score > 0 else 0
+        else:
+            average_score = 0
+            average_accuracy = 0
+        
+        papers_data.append({
+            'id': paper.id,
+            'name': paper.name,
+            'status': paper.status,
+            'question_count': question_count,
+            'total_attempts': total_attempts,
+            'average_score': average_score,
+            'average_accuracy': average_accuracy
+        })
+    
+    # 按答题次数排序
+    papers_data.sort(key=lambda x: x['total_attempts'], reverse=True)
+    return papers_data
+
+@teacher_bp.route('/statistics/paper/<int:paper_id>')
+def paper_analysis(paper_id):
+    """试卷详细分析页面"""
+    paper = Paper.get_paper_by_id(paper_id)
+    if not paper:
+        flash('试卷不存在！', 'error')
+        return redirect(url_for('teacher.statistics'))
+    
+    # 获取试卷的题目统计数据
+    questions_stats = get_paper_questions_statistics(paper_id)
+    
+    # 获取试卷的基本统计信息
+    exam_records = ExamRecord.get_paper_exam_records(paper_id)
+    paper_stats = calculate_paper_basic_stats(exam_records)
+    
+    return render_template('teacher/paper_analysis.html',
+                         paper=paper,
+                         questions_stats=questions_stats,
+                         paper_stats=paper_stats)
+
+def get_paper_questions_statistics(paper_id):
+    """获取试卷中每道题的统计数据"""
+    # 获取试卷的所有题目
+    paper_quizzes = PaperQuiz.get_paper_quizzes(paper_id)
+    questions_stats = []
+    
+    for pq in paper_quizzes:
+        quiz = Quiz.get_quiz_by_id(pq.quiz_id)
+        if not quiz:
+            continue
+            
+        # 获取这道题的所有答题记录
+        quiz_answers = Answer.query.filter_by(paper_id=paper_id, quiz_id=pq.quiz_id).all()
+        
+        total_answers = len(quiz_answers)
+        correct_answers = len([a for a in quiz_answers if a.is_correct])
+        accuracy_rate = (correct_answers / total_answers * 100) if total_answers > 0 else 0
+        
+        # 统计错误答案分布
+        wrong_answers = [a for a in quiz_answers if not a.is_correct]
+        error_distribution = {}
+        for wrong_answer in wrong_answers:
+            answer_text = wrong_answer.student_answer
+            if answer_text in error_distribution:
+                error_distribution[answer_text] += 1
+            else:
+                error_distribution[answer_text] = 1
+        
+        # 按错误次数排序
+        error_distribution = sorted(error_distribution.items(), key=lambda x: x[1], reverse=True)
+        
+        questions_stats.append({
+            'question_order': pq.question_order,
+            'quiz_id': pq.quiz_id,
+            'content': quiz.content,
+            'correct_answer': quiz.answer,
+            'analysis': quiz.analysis,
+            'score': pq.score,
+            'total_answers': total_answers,
+            'correct_answers': correct_answers,
+            'wrong_answers': len(wrong_answers),
+            'accuracy_rate': round(accuracy_rate, 1),
+            'error_distribution': error_distribution[:5]  # 只显示前5个最常见的错误答案
+        })
+    
+    # 按题目顺序排序
+    questions_stats.sort(key=lambda x: x['question_order'])
+    return questions_stats
+
+def calculate_paper_basic_stats(exam_records):
+    """计算试卷的基本统计信息"""
+    if not exam_records:
+        return {
+            'total_attempts': 0,
+            'average_score': 0,
+            'highest_score': 0,
+            'lowest_score': 0,
+            'average_accuracy': 0,
+            'pass_rate': 0,
+            'score_distribution': []
+        }
+    
+    total_attempts = len(exam_records)
+    scores = [record.total_score for record in exam_records]
+    max_scores = [record.max_score for record in exam_records]
+    
+    average_score = sum(scores) / total_attempts
+    highest_score = max(scores)
+    lowest_score = min(scores)
+    
+    # 计算平均正确率
+    total_accuracy = sum(record.accuracy_rate for record in exam_records)
+    average_accuracy = total_accuracy / total_attempts
+    
+    # 计算及格率（假设60%为及格线）
+    pass_count = len([record for record in exam_records if record.accuracy_rate >= 60])
+    pass_rate = (pass_count / total_attempts * 100) if total_attempts > 0 else 0
+    
+    # 分数分布（按10分一个区间）
+    score_ranges = ['0-10', '11-20', '21-30', '31-40', '41-50', '51-60', '61-70', '71-80', '81-90', '91-100']
+    score_distribution = [0] * 10
+    
+    for score in scores:
+        # 假设满分为100，按比例计算
+        if max_scores:
+            normalized_score = (score / max_scores[0]) * 100 if max_scores[0] > 0 else 0
+        else:
+            normalized_score = 0
+            
+        index = min(int(normalized_score // 10), 9)
+        score_distribution[index] += 1
+    
+    return {
+        'total_attempts': total_attempts,
+        'average_score': round(average_score, 1),
+        'highest_score': round(highest_score, 1),
+        'lowest_score': round(lowest_score, 1),
+        'average_accuracy': round(average_accuracy, 1),
+        'pass_rate': round(pass_rate, 1),
+        'score_distribution': list(zip(score_ranges, score_distribution))
+    }
 
 @teacher_bp.route('/statistics/student/<student_id>')
 def student_analysis(student_id):
@@ -672,10 +837,18 @@ def upload_tool():
         # 确保上传目录存在
         ensure_upload_folder()
         
-        # 生成唯一文件名
+        # 处理文件名
         original_filename = secure_filename(file.filename)
         file_extension = original_filename.rsplit('.', 1)[1].lower()
-        unique_filename = f"{uuid.uuid4()}.{file_extension}"
+        
+        # 检查是否为URL链接文件（保持原始文件名）
+        if original_filename.lower().startswith(URL_LINK_PREFIX):
+            # URL链接文件：保持原始文件名
+            unique_filename = original_filename
+        else:
+            # 普通HTML文件：生成唯一文件名
+            unique_filename = f"{uuid.uuid4()}.{file_extension}"
+        
         file_path = os.path.join(UPLOAD_FOLDER, unique_filename)
         
         # 保存文件
@@ -714,11 +887,42 @@ def preview_tool(tool_id):
     tool.increment_views()
     
     try:
-        # 读取HTML文件内容
+        # 特殊前缀文件：内容仅为URL，直接重定向
+        if tool.file_name.lower().startswith(URL_LINK_PREFIX):
+            with open(tool.file_path, 'r', encoding='utf-8') as f:
+                content_all = f.read()
+
+            # 先尝试从全文中提取第一个 http(s) URL（兼容由编辑器生成的 HTML 包裹）
+            url_match = re.search(r"https?://[^\s\"'<>]+", content_all, re.IGNORECASE)
+            if url_match:
+                return redirect(url_match.group(0))
+
+            # 回退：逐行扫描，取首个非空文本作为目标
+            first_non_empty_line = ''
+            for line in content_all.splitlines():
+                stripped = line.strip().lstrip('\ufeff')
+                if stripped:
+                    first_non_empty_line = stripped
+                    break
+            if not first_non_empty_line:
+                flash('跳转地址为空！', 'error')
+                return redirect(url_for('teacher.toolbox'))
+
+            target_url = first_non_empty_line
+            # 去除包裹引号
+            if (target_url.startswith('"') and target_url.endswith('"')) or (target_url.startswith("'") and target_url.endswith("'")):
+                target_url = target_url[1:-1].strip()
+            # 以 www. 开头自动补协议
+            if target_url.lower().startswith('www.'):
+                target_url = 'http://' + target_url
+            # 缺少协议则补 http://
+            if not (target_url.lower().startswith('http://') or target_url.lower().startswith('https://')):
+                target_url = 'http://' + target_url
+            return redirect(target_url)
+
+        # 常规HTML：读取并直接返回内容
         with open(tool.file_path, 'r', encoding='utf-8') as f:
             content = f.read()
-        
-        # 返回HTML内容（直接展示）
         return content
     
     except Exception as e:

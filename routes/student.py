@@ -7,10 +7,12 @@ from models.exam_record import ExamRecord
 from models.tool import Tool
 from openai import OpenAI
 from config import Config
+import re
 import os
 
 # 创建学生蓝图
 student_bp = Blueprint('student', __name__, url_prefix='/student')
+URL_LINK_PREFIX = 'url_'
 
 @student_bp.route('/login', methods=['GET', 'POST'])
 def login():
@@ -526,11 +528,36 @@ def use_tool(tool_id):
     tool.increment_views()
     
     try:
-        # 读取HTML文件内容
+        # 如果是URL链接占位文件：读取并重定向到目标链接
+        if tool.file_name.lower().startswith(URL_LINK_PREFIX):
+            with open(tool.file_path, 'r', encoding='utf-8') as f:
+                content_all = f.read()
+            # 优先从全文提取第一个 http(s) 链接
+            url_match = re.search(r"https?://[^\s\"'<>]+", content_all, re.IGNORECASE)
+            if url_match:
+                return redirect(url_match.group(0))
+            # 回退：首个非空行，清理BOM/引号并补全协议
+            first_non_empty_line = ''
+            for line in content_all.splitlines():
+                stripped = line.strip().lstrip('\ufeff')
+                if stripped:
+                    first_non_empty_line = stripped
+                    break
+            if not first_non_empty_line:
+                flash('跳转地址为空！', 'error')
+                return redirect(url_for('student.toolbox'))
+            target_url = first_non_empty_line
+            if (target_url.startswith('"') and target_url.endswith('"')) or (target_url.startswith("'") and target_url.endswith("'")):
+                target_url = target_url[1:-1].strip()
+            if target_url.lower().startswith('www.'):
+                target_url = 'http://' + target_url
+            if not (target_url.lower().startswith('http://') or target_url.lower().startswith('https://')):
+                target_url = 'http://' + target_url
+            return redirect(target_url)
+
+        # 常规HTML：读取并返回内容
         with open(tool.file_path, 'r', encoding='utf-8') as f:
             content = f.read()
-        
-        # 返回HTML内容（直接展示）
         return content
     
     except Exception as e:

@@ -64,7 +64,7 @@
 
                             <!-- 使用按钮 -->
                             <button 
-                                onclick="loadTool('/student/toolbox/tool/{{ tool.id }}')"
+                                onclick="loadTool('/student/toolbox/tool/{{ tool.id }}', '{{ tool.file_name }}')"
                                 class="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-2 px-3 rounded-lg font-medium transition duration-200 flex items-center justify-center space-x-1 text-sm"
                             >
                                 <span class="text-xs">🚀</span>
@@ -154,8 +154,15 @@
 
     <script>
         // 加载工具到当前iframe中
-        function loadTool(toolUrl) {
-            // 直接在当前窗口加载工具
+        function loadTool(toolUrl, fileName) {
+            const lower = (fileName || '').toLowerCase();
+            const urlPrefix = 'url_';
+            if (lower.startsWith(urlPrefix)) {
+                // url_ 工具：新标签打开（后端将重定向到目标URL）
+                window.open(toolUrl, '_blank', 'noopener');
+                return;
+            }
+            // 普通工具：当前窗口打开
             window.location.href = toolUrl;
         }
 

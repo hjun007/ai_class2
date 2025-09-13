@@ -48,12 +48,12 @@
                     </a>
 
                     <!-- AI智能体 -->
-                    <button onclick="loadPage('/student/ai-assistant')" class="nav-item px-5 py-3 rounded-lg border border-transparent hover:bg-blue-50 hover:border-blue-200 transition-all duration-200">
+                    <a href="https://www.coze.cn/s/STTLuGqTdIE/" target="_blank" rel="noopener" class="nav-item px-5 py-3 rounded-lg border border-transparent hover:bg-blue-50 hover:border-blue-200 transition-all duration-200 inline-block">
                         <div class="flex items-center">
                             <span class="text-xl mr-3"></span>
                             <span class="font-semibold text-lg">AI智能体</span>
                         </div>
-                    </button>
+                    </a>
 
                     <!-- 学习工具箱 -->
                     <button onclick="loadPage('/student/toolbox')" class="nav-item px-5 py-3 rounded-lg border border-transparent hover:bg-blue-50 hover:border-blue-200 transition-all duration-200">
@@ -162,21 +162,14 @@
             }
         }
         
-        // 页面加载时默认显示AI智能体页面
+        // 页面加载时显示欢迎页面
         window.addEventListener('load', function() {
-            // 隐藏欢迎内容
-            document.getElementById('welcome-content').classList.add('hidden');
+            // 保持欢迎内容显示
+            document.getElementById('welcome-content').classList.remove('hidden');
             
-            // 显示 iframe 并加载AI智能体页面
+            // 隐藏 iframe
             const iframe = document.getElementById('content-frame');
-            iframe.classList.remove('hidden');
-            iframe.src = '/student/ai-assistant';
-            
-            // 默认选中AI智能体按钮
-            const aiButton = document.querySelector('button[onclick="loadPage(\'/student/ai-assistant\')"]');
-            if (aiButton) {
-                aiButton.classList.add('bg-blue-100', 'text-blue-800', 'border-blue-300');
-            }
+            iframe.classList.add('hidden');
         });
     </script>
 </body>

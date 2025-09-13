@@ -172,7 +172,7 @@
                                     <div class="flex items-center space-x-2 ml-4">
                                         <!-- 预览按钮 -->
                                         <button 
-                                            onclick="previewTool({{ tool.id }})"
+                                            onclick="previewTool({{ tool.id }}, '{{ tool.file_name }}')"
                                             class="px-3 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 text-sm rounded-lg transition duration-200"
                                             title="预览工具"
                                         >
@@ -281,11 +281,18 @@
         }
 
         // 预览工具
-        function previewTool(toolId) {
+        function previewTool(toolId, fileName) {
+            const lower = (fileName || '').toLowerCase();
+            const urlPrefix = 'url_';
+            const previewUrl = `/teacher/toolbox/tool/${toolId}/preview`;
+            if (lower.startsWith(urlPrefix)) {
+                // 特殊前缀：新标签打开预览路由（后端将重定向到目标URL）
+                window.open(previewUrl, '_blank', 'noopener');
+                return;
+            }
             const modal = document.getElementById('preview-modal');
             const frame = document.getElementById('preview-frame');
-            
-            frame.src = `/teacher/toolbox/tool/${toolId}/preview`;
+            frame.src = previewUrl;
             modal.classList.remove('hidden');
         }
 
