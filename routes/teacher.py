@@ -467,13 +467,14 @@ def get_paper_questions_statistics(paper_id):
         quiz_answers = Answer.query.filter_by(paper_id=paper_id, quiz_id=pq.quiz_id).all()
         
         total_answers = len(quiz_answers)
-        correct_answers = len([a for a in quiz_answers if a.is_correct])
+        correct_answers_list = [a for a in quiz_answers if a.is_correct]
+        wrong_answers_list = [a for a in quiz_answers if not a.is_correct]
+        correct_answers = len(correct_answers_list)
         accuracy_rate = (correct_answers / total_answers * 100) if total_answers > 0 else 0
         
         # 统计错误答案分布
-        wrong_answers = [a for a in quiz_answers if not a.is_correct]
         error_distribution = {}
-        for wrong_answer in wrong_answers:
+        for wrong_answer in wrong_answers_list:
             answer_text = wrong_answer.student_answer
             if answer_text in error_distribution:
                 error_distribution[answer_text] += 1
@@ -482,6 +483,15 @@ def get_paper_questions_statistics(paper_id):
         
         # 按错误次数排序
         error_distribution = sorted(error_distribution.items(), key=lambda x: x[1], reverse=True)
+        
+        # 获取答题正确和错误的学生列表
+        correct_students = [{'student_id': a.student_id, 'answer': a.student_answer, 'answered_at': a.answered_at.isoformat() if a.answered_at else None} for a in correct_answers_list]
+        wrong_students = [{'student_id': a.student_id, 'answer': a.student_answer, 'answered_at': a.answered_at.isoformat() if a.answered_at else None} for a in wrong_answers_list]
+        
+        # 将学生列表转换为JSON字符串，确保中文字符不被转义，并转义HTML属性中的引号
+        import html
+        correct_students_json = html.escape(json.dumps(correct_students, ensure_ascii=False))
+        wrong_students_json = html.escape(json.dumps(wrong_students, ensure_ascii=False))
         
         questions_stats.append({
             'question_order': pq.question_order,
@@ -492,9 +502,13 @@ def get_paper_questions_statistics(paper_id):
             'score': pq.score,
             'total_answers': total_answers,
             'correct_answers': correct_answers,
-            'wrong_answers': len(wrong_answers),
+            'wrong_answers': len(wrong_answers_list),
             'accuracy_rate': round(accuracy_rate, 1),
-            'error_distribution': error_distribution[:5]  # 只显示前5个最常见的错误答案
+            'error_distribution': error_distribution[:5],  # 只显示前5个最常见的错误答案
+            'correct_students': correct_students,
+            'wrong_students': wrong_students,
+            'correct_students_json': correct_students_json,
+            'wrong_students_json': wrong_students_json
         })
     
     # 按题目顺序排序
