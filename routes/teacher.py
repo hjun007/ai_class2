@@ -395,41 +395,44 @@ def statistics():
     return render_template('teacher/statistics.html', students=students_list, papers=papers_data)
 
 def get_papers_statistics():
-    """获取试卷统计数据"""
-    all_papers = Paper.get_all_papers()
+    """获取试卷统计数据 - 只返回已发布且有考试记录的试卷"""
+    # 只获取已发布的试卷
+    published_papers = Paper.get_papers_by_status('published')
     papers_data = []
     
-    for paper in all_papers:
-        # 获取试卷的题目数量
-        paper_quizzes = PaperQuiz.get_paper_quizzes(paper.id)
-        question_count = len(paper_quizzes)
-        
+    for paper in published_papers:
         # 获取试卷的考试记录
         exam_records = ExamRecord.get_paper_exam_records(paper.id)
         total_attempts = len(exam_records)
         
+        # 只统计有考试记录的试卷
         if total_attempts > 0:
+            # 获取试卷的题目数量
+            paper_quizzes = PaperQuiz.get_paper_quizzes(paper.id)
+            question_count = len(paper_quizzes)
+            
             # 计算平均分和平均正确率
             total_score = sum(record.total_score for record in exam_records)
             total_max_score = sum(record.max_score for record in exam_records)
             average_score = total_score / total_attempts
             average_accuracy = (total_score / total_max_score * 100) if total_max_score > 0 else 0
-        else:
-            average_score = 0
-            average_accuracy = 0
-        
-        papers_data.append({
-            'id': paper.id,
-            'name': paper.name,
-            'status': paper.status,
-            'question_count': question_count,
-            'total_attempts': total_attempts,
-            'average_score': average_score,
-            'average_accuracy': average_accuracy
-        })
+            
+            # 获取最近的考试时间
+            latest_exam_time = max(record.submit_time for record in exam_records)
+            
+            papers_data.append({
+                'id': paper.id,
+                'name': paper.name,
+                'status': paper.status,
+                'question_count': question_count,
+                'total_attempts': total_attempts,
+                'average_score': average_score,
+                'average_accuracy': average_accuracy,
+                'latest_exam_time': latest_exam_time
+            })
     
-    # 按答题次数排序
-    papers_data.sort(key=lambda x: x['total_attempts'], reverse=True)
+    # 按最近考试时间降序排序（最近的在前面）
+    papers_data.sort(key=lambda x: x['latest_exam_time'], reverse=True)
     return papers_data
 
 @teacher_bp.route('/statistics/paper/<int:paper_id>')

@@ -204,7 +204,7 @@
             <div class="bg-white rounded-xl shadow-lg overflow-hidden">
                 <div class="px-6 py-4 bg-gray-50 border-b">
                     <h3 class="text-lg font-semibold text-gray-800">试卷列表</h3>
-                    <p class="text-sm text-gray-600 mt-1">点击"详细分析"按钮查看试卷中每道题的统计情况</p>
+                    <p class="text-sm text-gray-600 mt-1">只显示已发布且有学生答题记录的试卷，点击"详细分析"查看每道题的统计情况</p>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full">
@@ -215,6 +215,7 @@
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">答题次数</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">平均分</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">平均正确率</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">最近考试</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">状态</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
                             </tr>
@@ -244,6 +245,14 @@
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="text-sm text-gray-900">{{ "%.1f"|format(paper.average_accuracy) }}%</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    {% if paper.latest_exam_time %}
+                                    <div class="text-sm text-gray-900">{{ paper.latest_exam_time.strftime('%Y-%m-%d') }}</div>
+                                    <div class="text-xs text-gray-500">{{ paper.latest_exam_time.strftime('%H:%M') }}</div>
+                                    {% else %}
+                                    <div class="text-sm text-gray-500">-</div>
+                                    {% endif %}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     {% if paper.status == 'published' %}
